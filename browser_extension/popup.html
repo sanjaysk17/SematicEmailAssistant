@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Semantic Email Assistant</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-wrapper">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-left">
+        <div class="app-logo">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+            <polyline points="22,6 12,13 2,6"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="app-title">Semantic Email Assistant</h1>
+          <div class="app-subtitle" id="user-subtitle">Personalized AI Assistant</div>
+        </div>
+      </div>
+      <div class="header-right">
+        <!-- User Profile Pill -->
+        <button id="btn-user-profile" class="user-pill" title="View & Edit Persona Memory">
+          <span class="user-avatar">👤</span>
+          <span id="user-display-name">User</span>
+        </button>
+
+        <div id="backend-status" class="status-pill online" title="Backend Server Status">
+          <span class="status-dot"></span>
+          <span id="backend-status-text">Connected</span>
+        </div>
+        <button id="btn-popout" class="icon-btn" title="Open in Full Tab">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+            <polyline points="15 3 21 3 21 9"></polyline>
+            <line x1="10" y1="14" x2="21" y2="3"></line>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs">
+      <button class="nav-tab active" data-tab="tab-assistant">
+        <span class="tab-icon">✍️</span> Assistant
+      </button>
+      <button class="nav-tab" data-tab="tab-semantics">
+        <span class="tab-icon">🧠</span> Semantics
+      </button>
+      <button class="nav-tab" data-tab="tab-draft">
+        <span class="tab-icon">✉️</span> Current Draft
+      </button>
+      <button class="nav-tab" data-tab="tab-saved-drafts">
+        <span class="tab-icon">📁</span> Drafts <span id="drafts-count-badge" class="badge-count hidden">0</span>
+      </button>
+      <button class="nav-tab" data-tab="tab-validation">
+        <span class="tab-icon">🛡️</span> Validation
+      </button>
+    </nav>
+
+    <!-- Global Progress / Status Bar -->
+    <div id="global-spinner" class="progress-container hidden">
+      <div class="progress-bar-indeterminate"></div>
+      <span id="global-spinner-text" class="progress-label">Processing with NLP engine...</span>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="app-toast" class="toast hidden"></div>
+
+    <!-- Tab 1: Assistant (NO EXAMPLE SCENARIOS) -->
+    <main id="tab-assistant" class="tab-content active">
+      <!-- Persona Memory Indicator Banner -->
+      <div class="persona-active-banner">
+        <div class="persona-badge">
+          <span class="pulse-dot"></span> Persona Active: <strong id="persona-summary-name">User</strong>
+        </div>
+        <span id="persona-summary-role" class="persona-role-text">Identity Active</span>
+      </div>
+
+      <div class="section-card">
+        <div class="field-header">
+          <label for="requirement-input" class="field-label">What email would you like to write? <span class="required">*</span></label>
+          <button id="btn-grab-context" class="btn-text" title="Web Load: Injects selected text from active webpage directly into your email prompt">
+            📥 Web Load (Selected Text)
+          </button>
+        </div>
+        <textarea id="requirement-input" class="textarea-input" rows="4" placeholder="Describe the email in your own words. The assistant will personalize the draft using your identity and sign-off..."></textarea>
+      </div>
+
+      <!-- Optional Constraints Collapsible -->
+      <details class="accordion">
+        <summary class="accordion-summary">⚙️ Optional Constraints & Context Preferences</summary>
+        <div class="accordion-content">
+          <div class="input-grid">
+            <div class="form-group">
+              <label for="recipient-hint" class="field-label">Target Recipient:</label>
+              <input type="text" id="recipient-hint" class="text-input" placeholder="e.g. Professor Jones, Sarah, Client" />
+            </div>
+            <div class="form-group">
+              <label for="tone-hint" class="field-label">Target Tone:</label>
+              <select id="tone-hint" class="select-input">
+                <option value="">Auto-Detect from Semantics</option>
+                <option value="polite and professional">Polite & Professional</option>
+                <option value="firm and polite">Firm & Polite (Disputes / Follow-ups)</option>
+                <option value="courteous and urgent">Courteous & Urgent</option>
+                <option value="apologetic and formal">Apologetic & Formal</option>
+                <option value="friendly and casual">Friendly & Casual</option>
+              </select>
+            </div>
+          </div>
+          <div class="input-grid">
+            <div class="form-group">
+              <label for="length-hint" class="field-label">Length:</label>
+              <select id="length-hint" class="select-input">
+                <option value="medium">Medium (Standard)</option>
+                <option value="short">Short (Concise)</option>
+                <option value="long">Detailed</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="language-hint" class="field-label">Language:</label>
+              <input type="text" id="language-hint" class="text-input" value="English" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="context-input" class="field-label">Background Context / Prior Thread:</label>
+            <textarea id="context-input" class="textarea-input" rows="2" placeholder="e.g. Senior Thesis Course (CS 499) or Project Apollo"></textarea>
+          </div>
+        </div>
+      </details>
+
+      <div class="action-footer">
+        <button id="btn-analyze" class="btn btn-secondary">
+          <span>🧠 1. Analyze Semantics</span>
+        </button>
+        <button id="btn-generate-direct" class="btn btn-primary">
+          <span>⚡ 2. Generate & Validate Draft</span>
+        </button>
+      </div>
+    </main>
+
+    <!-- Tab 2: Semantics (Interactive Structured Representation) -->
+    <main id="tab-semantics" class="tab-content">
+      <div class="tab-info-banner">
+        <strong>Extensible Structured Communication Representation</strong>
+        <p>Review and edit the extracted parameters before drafting to ensure complete fidelity.</p>
+      </div>
+
+      <div id="semantics-empty" class="empty-state">
+        <div class="empty-icon">🧠</div>
+        <p>No semantic analysis yet. Enter a requirement and click "Analyze Semantics".</p>
+      </div>
+
+      <div id="semantics-content" class="hidden">
+        <div class="section-card">
+          <div class="metadata-row">
+            <span class="badge badge-indigo" id="rep-intent-badge">Intent: Unknown</span>
+            <span class="badge badge-purple" id="rep-tone-badge">Tone: Formal</span>
+            <span class="badge badge-neutral" id="rep-confidence-badge">Confidence: 0.0</span>
+          </div>
+
+          <div class="form-group">
+            <label class="field-label">Primary Intent:</label>
+            <input type="text" id="rep-intent-input" class="text-input" />
+          </div>
+
+          <div class="input-grid">
+            <div class="form-group">
+              <label class="field-label">Recipient:</label>
+              <input type="text" id="rep-recipient-input" class="text-input" />
+            </div>
+            <div class="form-group">
+              <label class="field-label">Tone Register:</label>
+              <input type="text" id="rep-tone-input" class="text-input" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="field-label">Core Topic:</label>
+            <input type="text" id="rep-topic-input" class="text-input" />
+          </div>
+
+          <div class="input-grid">
+            <div class="form-group">
+              <label class="field-label">Required Action:</label>
+              <input type="text" id="rep-action-input" class="text-input" />
+            </div>
+            <div class="form-group">
+              <label class="field-label">Deadline / Temporal Reference:</label>
+              <input type="text" id="rep-deadline-input" class="text-input" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="field-label">Reason / Justification:</label>
+            <input type="text" id="rep-reason-input" class="text-input" />
+          </div>
+
+          <div class="form-group">
+            <label class="field-label">Preserved Facts & Details:</label>
+            <div id="rep-facts-container" class="tags-container"></div>
+          </div>
+
+          <div class="form-group">
+            <label class="field-label">Negative Constraints & Boundaries:</label>
+            <div id="rep-constraints-container" class="tags-container"></div>
+          </div>
+        </div>
+
+        <div class="action-footer">
+          <button id="btn-generate-from-rep" class="btn btn-primary full-width">
+            <span>✨ Draft Email Using This Representation</span>
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <!-- Tab 3: Generated Email Draft -->
+    <main id="tab-draft" class="tab-content">
+      <div id="draft-empty" class="empty-state">
+        <div class="empty-icon">✉️</div>
+        <p>No draft generated yet. Click "Generate & Validate" on the Assistant tab.</p>
+      </div>
+
+      <div id="draft-content" class="hidden">
+        <div class="section-card">
+          <div class="field-header">
+            <label for="draft-subject" class="field-label">Subject Line:</label>
+            <button id="btn-copy-subject" class="btn-text">📋 Copy</button>
+          </div>
+          <input type="text" id="draft-subject" class="text-input font-medium" />
+        </div>
+
+        <div class="section-card">
+          <div class="field-header">
+            <label for="draft-body" class="field-label">Email Body (Signed by <span id="draft-sign-name">User</span>):</label>
+            <span id="draft-word-count" class="stat-counter">0 words</span>
+          </div>
+          <textarea id="draft-body" class="textarea-input email-body-textarea" rows="9"></textarea>
+        </div>
+
+        <div class="meta-strip">
+          <span id="draft-model-tag" class="meta-item">Model: Local Fallback</span>
+          <span id="draft-latency-tag" class="meta-item">Latency: -- ms</span>
+          <span id="draft-val-tag" class="badge badge-success">Valid</span>
+          <span id="draft-autosave-tag" class="badge badge-indigo">💾 Auto-saved to DB</span>
+        </div>
+
+        <!-- Redo / Refine Draft Card (When user is not satisfied) -->
+        <div class="section-card redo-card" id="redo-draft-section">
+          <div class="field-header">
+            <label class="field-label font-bold">🔄 Not satisfied? Redo / Refine Draft</label>
+            <span class="badge badge-warning">AI Redo</span>
+          </div>
+          <p class="redo-hint">Pick a 1-click refinement or type custom instructions:</p>
+          <div class="redo-presets">
+            <button type="button" class="btn-preset" data-preset="Make the email shorter and more concise">✂️ Shorter</button>
+            <button type="button" class="btn-preset" data-preset="Make the email more formal and polite">👔 Formal</button>
+            <button type="button" class="btn-preset" data-preset="Make the tone warmer and friendlier">🤝 Friendlier</button>
+            <button type="button" class="btn-preset" data-preset="Highlight urgency and prompt response">⏰ Urgent</button>
+            <button type="button" class="btn-preset" data-preset="Generate an alternative wording variation">🎲 Alternative</button>
+          </div>
+          <div class="redo-input-wrapper">
+            <input type="text" id="redo-feedback-input" class="text-input" placeholder="What to change? (e.g. shorter, don't apologize...)" />
+            <button type="button" id="btn-redo-draft" class="btn btn-warning">
+              <span>⚡ Redo Draft</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="action-footer stacked">
+          <button id="btn-inject-webmail" class="btn btn-success full-width">
+            <span>📨 Insert into Gmail / Outlook / Active Tab</span>
+          </button>
+          <div class="button-row">
+            <button id="btn-save-current-draft" class="btn btn-primary flex-1" title="Save this draft & prompt to database">
+              <span>💾 Save to Drafts</span>
+            </button>
+            <button id="btn-view-all-drafts" class="btn btn-secondary flex-1" title="View all drafts in Drafts tab">
+              <span>📁 Open Drafts Library</span>
+            </button>
+          </div>
+          <div class="button-row">
+            <button id="btn-copy-all" class="btn btn-outline flex-1">
+              <span>📋 Copy Entire Email</span>
+            </button>
+            <button id="btn-view-validation" class="btn btn-outline flex-1">
+              <span>🛡️ Diagnostics Report</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Tab 4: Validation Engine Diagnostics -->
+    <main id="tab-validation" class="tab-content">
+      <div id="val-empty" class="empty-state">
+        <div class="empty-icon">🛡️</div>
+        <p>No validation report generated yet. Draft an email to see multi-criteria checks.</p>
+      </div>
+
+      <div id="val-content" class="hidden">
+        <div class="val-header-card">
+          <div class="val-overall">
+            <div id="val-status-pill" class="status-badge-lg badge-success">PASSED</div>
+            <div class="val-title">Multi-Criteria Output Evaluation</div>
+          </div>
+        </div>
+
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-title">Intent Preservation</div>
+            <div id="metric-intent" class="metric-value text-success">Preserved</div>
+            <div class="metric-desc" id="metric-intent-desc">Goal conveyed accurately</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-title">Tone Suitability</div>
+            <div id="metric-tone" class="metric-value text-success">Compliant</div>
+            <div class="metric-desc" id="metric-tone-desc">Matched requested register</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-title">Completeness</div>
+            <div id="metric-completeness" class="metric-value">100%</div>
+            <div class="metric-progress"><div id="metric-completeness-bar" class="metric-bar" style="width: 100%;"></div></div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-title">Semantic Alignment</div>
+            <div id="metric-similarity" class="metric-value">0.88</div>
+            <div class="metric-progress"><div id="metric-similarity-bar" class="metric-bar" style="width: 88%;"></div></div>
+          </div>
+        </div>
+
+        <!-- Missing Details Section -->
+        <div id="val-missing-card" class="section-card hidden">
+          <h4 class="card-subtitle text-warning">⚠️ Missing Information:</h4>
+          <ul id="val-missing-list" class="report-list"></ul>
+        </div>
+
+        <!-- Hallucinations / Unsupported Facts Section -->
+        <div id="val-unsupported-card" class="section-card hidden">
+          <h4 class="card-subtitle text-danger">🚫 Unsupported Details (Hallucinations):</h4>
+          <ul id="val-unsupported-list" class="report-list"></ul>
+        </div>
+
+        <!-- Suggestions Section -->
+        <div id="val-suggestions-card" class="section-card">
+          <h4 class="card-subtitle">💡 Actionable Feedback & Guidance:</h4>
+          <ul id="val-suggestions-list" class="report-list">
+            <li>Email satisfies all factual, semantic, and tone criteria.</li>
+          </ul>
+        </div>
+      </div>
+    </main>
+
+    <!-- Tab: Saved Drafts & Prompts History (Stored in Database) -->
+    <main id="tab-saved-drafts" class="tab-content">
+      <div class="drafts-toolbar-card">
+        <div class="drafts-toolbar-header">
+          <div class="drafts-toolbar-title-group">
+            <h3 class="section-title">📁 Saved User Drafts</h3>
+            <span id="drafts-count-summary" class="badge badge-neutral">0 saved</span>
+          </div>
+          <button id="btn-refresh-drafts" class="btn-text" title="Reload drafts from database">
+            🔄 Refresh
+          </button>
+        </div>
+        <p class="section-subtitle">Every draft is persistently stored alongside the user prompt that generated it in the SQLite database.</p>
+
+        <div class="drafts-search-box">
+          <input type="text" id="drafts-search-input" class="text-input" placeholder="🔍 Search by prompt, subject, or recipient..." />
+        </div>
+      </div>
+
+      <div id="drafts-empty" class="empty-state">
+        <div class="empty-icon">📁</div>
+        <p>No saved drafts found yet.</p>
+        <p class="empty-hint">Draft emails in the Assistant tab and they will automatically be saved here with your original prompts!</p>
+      </div>
+
+      <!-- Container for dynamic draft cards -->
+      <div id="drafts-list-container" class="drafts-cards-list hidden"></div>
+    </main>
+
+    <!-- MODAL: User Persona & Profile Memory -->
+    <div id="modal-profile" class="modal-overlay hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3 class="modal-title">👤 My Identity & Persona Memory</h3>
+          <button id="btn-close-profile" class="close-btn">&times;</button>
+        </div>
+        <p class="modal-desc">The assistant remembers these attributes to personalize every email draft and signature automatically.</p>
+
+        <div class="form-group">
+          <label for="profile-name" class="field-label">Your Full Name: <span class="required">*</span></label>
+          <input type="text" id="profile-name" class="text-input" placeholder="e.g. Alex Smith" value="" />
+        </div>
+
+        <div class="input-grid">
+          <div class="form-group">
+            <label for="profile-job" class="field-label">Job Title / Major / Role:</label>
+            <input type="text" id="profile-job" class="text-input" placeholder="e.g. Software Engineer" value="" />
+          </div>
+          <div class="form-group">
+            <label for="profile-org" class="field-label">Organization / University:</label>
+            <input type="text" id="profile-org" class="text-input" placeholder="e.g. Tech Lab / University" value="" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="profile-signoff" class="field-label">Preferred Sign-off / Signature:</label>
+          <input type="text" id="profile-signoff" class="text-input" placeholder="e.g. Best regards, [Your Name]" value="" />
+        </div>
+
+        <div class="form-group">
+          <label for="profile-aboutme" class="field-label">Something About Me (Personal Memory):</label>
+          <textarea id="profile-aboutme" class="textarea-input" rows="3" placeholder="Tell the assistant about your background, typical projects, or communication style so drafts sound authentically like you..."></textarea>
+        </div>
+
+        <div class="form-group margin-top-sm" style="border-top: 1px solid #e2e8f0; padding-top: 10px;">
+          <label for="backend-url-input" class="field-label">🌐 Backend Server URL:</label>
+          <input type="text" id="backend-url-input" class="text-input" placeholder="http://127.0.0.1:8000" value="http://127.0.0.1:8000" />
+          <p class="field-help" style="font-size: 11px; color: #64748b; margin-top: 3px;">
+            🔒 All AI APIs run securely on the backend with a single API key. End users do not need their own API keys.
+          </p>
+        </div>
+
+        <div class="modal-actions">
+          <button id="btn-logout" class="btn btn-secondary">Log Out</button>
+          <button id="btn-save-profile" class="btn btn-primary flex-1">💾 Save Settings</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: Login & Google Authenticator (TOTP) -->
+    <div id="modal-auth" class="modal-overlay hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3 class="modal-title">🔐 Secure Login & 2FA</h3>
+          <button id="btn-close-auth" class="close-btn">&times;</button>
+        </div>
+
+        <div class="auth-tabs">
+          <button id="auth-tab-login" class="auth-tab active">Log In</button>
+          <button id="auth-tab-register" class="auth-tab">New Account + Google Authenticator</button>
+        </div>
+
+        <!-- Login View -->
+        <div id="view-login" class="auth-view">
+          <div class="form-group">
+            <label class="field-label">Email Address:</label>
+            <input type="email" id="login-email" class="text-input" placeholder="name@domain.com" value="" />
+          </div>
+          <div class="form-group">
+            <label class="field-label">Password:</label>
+            <input type="password" id="login-password" class="text-input" placeholder="Enter password" value="" />
+          </div>
+
+          <div id="view-login-totp" class="totp-box hidden">
+            <div class="totp-label">🔑 Enter 6-digit Google Authenticator Code:</div>
+            <input type="text" id="login-totp-code" class="text-input totp-input" maxlength="6" placeholder="000000" />
+            <p class="totp-help">Open Google Authenticator on your phone and enter the code.</p>
+          </div>
+
+          <button id="btn-submit-login" class="btn btn-primary full-width margin-top-md">
+            <span>Sign In</span>
+          </button>
+
+          <div class="demo-separator">
+            <span>or use instant developer access</span>
+          </div>
+          <button id="btn-quick-demo-login" class="btn btn-secondary full-width">
+            <span>⚡ 1-Click Demo Login</span>
+          </button>
+        </div>
+
+        <!-- Register View -->
+        <div id="view-register" class="auth-view hidden">
+          <div id="register-step-1">
+            <div class="input-grid">
+              <div class="form-group">
+                <label class="field-label">Your Name: <span class="required">*</span></label>
+                <input type="text" id="reg-name" class="text-input" placeholder="e.g. Alex Smith" value="" />
+              </div>
+              <div class="form-group">
+                <label class="field-label">Email: <span class="required">*</span></label>
+                <input type="email" id="reg-email" class="text-input" placeholder="name@domain.com" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="field-label">Password: <span class="required">*</span></label>
+              <input type="password" id="reg-password" class="text-input" placeholder="Choose a password" />
+            </div>
+            <div class="form-group">
+              <label class="field-label">Something About You (Bio/Role):</label>
+              <input type="text" id="reg-aboutme" class="text-input" placeholder="e.g. AI developer working on natural language tools" />
+            </div>
+            <button id="btn-submit-register" class="btn btn-primary full-width margin-top-md">
+              <span>Next: Setup Google Authenticator ➡️</span>
+            </button>
+          </div>
+
+          <!-- Register Step 2: Google Authenticator QR Code -->
+          <div id="register-step-2" class="hidden">
+            <div class="qr-container">
+              <p class="qr-instruction">📱 <strong>Scan this QR code with Google Authenticator</strong>:</p>
+              <img id="reg-qr-img" class="qr-image" src="" alt="Google Authenticator QR Code" />
+              <div class="secret-key-box">
+                <span class="secret-label">Secret Key:</span>
+                <code id="reg-secret-key" class="secret-code">--------</code>
+              </div>
+            </div>
+
+            <div class="form-group margin-top-md">
+              <label class="field-label">Enter 6-digit code shown in Google Authenticator:</label>
+              <input type="text" id="reg-totp-verify" class="text-input totp-input" maxlength="6" placeholder="000000" />
+            </div>
+
+            <button id="btn-verify-reg-totp" class="btn btn-success full-width">
+              <span>✅ Complete 2FA Setup & Enter</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

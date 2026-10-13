@@ -1,0 +1,10 @@
+example_id,domain,method,subject,intent_preserved,completeness_score,semantic_similarity,tone_suitable,unsupported_count,validation_status,latency_ms,missing_items,unsupported_items
+SYN-001,academic,baseline_a,Project Update and Request,True,0.8,0.203,True,0,NEEDS_REVIEW,0.03,could not complete project; technical issue occurred,
+SYN-001,academic,baseline_b,Request Regarding Project Submission Deadline,True,1.0,0.236,True,0,PASS,0.02,,
+SYN-001,academic,proposed,Project Submission - Requesting Two Additional Days,True,1.0,0.357,True,0,NEEDS_REVIEW,87.1,,
+SYN-002,workplace,baseline_a,Notice of Absence,True,0.6,0.144,True,0,NEEDS_REVIEW,0.02,Reason (fever and doctor advised rest); fever; medical advice to rest,
+SYN-002,workplace,baseline_b,Sick Leave Notice - Monday and Tuesday,True,1.0,0.572,True,0,PASS,0.01,,
+SYN-002,workplace,proposed,Sick Leave Notice - two additional days,True,0.4,0.295,True,0,NEEDS_REVIEW,87.05,Deadline (today); Action: informing her I will be taking sick leave today Monday and tomorrow Tuesday; Temporal reference: today,
+SYN-003,business,baseline_a,Meeting reschedule,True,0.6,0.24,False,0,NEEDS_REVIEW,0.03,Duration (Thursday 3 PM); team cannot meet tomorrow; client audit conflict,
+SYN-003,business,baseline_b,Request Regarding Project Submission Deadline,False,0.0,0.102,True,0,VALIDATION_ERROR,0.01,Recipient (David); Action (reschedule call to Thursday 3 PM); Reason (urgent client audit); Duration (Thursday 3 PM); team cannot meet tomorrow; client audit conflict,
+SYN-003,business,proposed,Budget Review Reschedule - Reschedule Tomorrow'S Q3 Budget Review Call To Thursday 3 Pm Due To An Urgent Client Audit,True,1.0,0.573,True,0,NEEDS_REVIEW,90.02,,

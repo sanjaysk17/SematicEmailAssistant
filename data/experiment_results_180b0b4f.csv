@@ -1,0 +1,5 @@
+example_id,domain,method,subject,intent_preserved,completeness_score,semantic_similarity,tone_suitable,unsupported_count,validation_status,latency_ms,missing_items,unsupported_items
+SYN-001,academic,baseline_a,Project Update and Request,True,0.8,0.203,True,0,NEEDS_REVIEW,0.04,could not complete project; technical issue occurred,
+SYN-001,academic,proposed,Project Submission - Requesting Two Additional Days,True,1.0,0.357,True,0,NEEDS_REVIEW,105.66,,
+SYN-002,workplace,baseline_a,Notice of Absence,True,0.6,0.144,True,0,NEEDS_REVIEW,0.02,Reason (fever and doctor advised rest); fever; medical advice to rest,
+SYN-002,workplace,proposed,Sick Leave Notice - two additional days,True,0.571,0.295,True,0,NEEDS_REVIEW,107.02,Deadline (today); Action: informing her I will be taking sick leave today Monday and tomorrow Tuesday; Temporal reference: today,

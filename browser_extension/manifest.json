@@ -1,0 +1,48 @@
+{
+  "manifest_version": 3,
+  "name": "Semantic Email Writing Assistant",
+  "version": "2.0.0",
+  "description": "AI-powered email assistant with semantic requirement analysis, dynamic representation, output validation, and webmail integration.",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage",
+    "contextMenus"
+  ],
+  "host_permissions": [
+    "http://127.0.0.1:8000/*",
+    "http://localhost:8000/*",
+    "https://*/*",
+    "*://mail.google.com/*",
+    "*://outlook.live.com/*",
+    "*://outlook.office.com/*",
+    "*://outlook.office365.com/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Semantic Email Assistant",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://mail.google.com/*", "*://outlook.live.com/*", "*://outlook.office.com/*", "*://outlook.office365.com/*", "<all_urls>"],
+      "js": ["content.js"],
+      "all_frames": true,
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

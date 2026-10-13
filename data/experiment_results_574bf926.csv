@@ -1,0 +1,7 @@
+example_id,domain,method,subject,intent_preserved,completeness_score,semantic_similarity,tone_suitable,unsupported_count,validation_status,latency_ms,missing_items,unsupported_items
+SYN-001,academic,baseline_a,Project Update and Request,True,0.8,0.203,True,0,NEEDS_REVIEW,0.03,could not complete project; technical issue occurred,
+SYN-001,academic,baseline_b,Request Regarding Project Submission Deadline,True,1.0,0.236,True,0,PASS,0.03,,
+SYN-002,workplace,baseline_a,Notice of Absence,True,0.6,0.144,True,0,NEEDS_REVIEW,0.04,Reason (fever and doctor advised rest); fever; medical advice to rest,
+SYN-002,workplace,baseline_b,Sick Leave Notice - Monday and Tuesday,True,1.0,0.572,True,0,PASS,0.04,,
+SYN-003,business,baseline_a,Meeting reschedule,True,0.6,0.24,False,0,NEEDS_REVIEW,0.06,Duration (Thursday 3 PM); team cannot meet tomorrow; client audit conflict,
+SYN-003,business,baseline_b,Request Regarding Project Submission Deadline,False,0.0,0.102,True,0,VALIDATION_ERROR,0.04,Recipient (David); Action (reschedule call to Thursday 3 PM); Reason (urgent client audit); Duration (Thursday 3 PM); team cannot meet tomorrow; client audit conflict,
