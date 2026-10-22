@@ -35,7 +35,7 @@ def test_prompt_builder_contains_critical_sections(sample_representation):
 
 
 def test_mock_generation_service(sample_representation):
-    service = EmailGenerationService()
+    service = EmailGenerationService(provider_type="mock")
     req = "Write to professor for 2 days extension"
     result = service.generate(req, sample_representation, system_version="proposed")
 
@@ -47,7 +47,7 @@ def test_mock_generation_service(sample_representation):
 
 
 def test_baseline_generation_modes(sample_representation):
-    service = EmailGenerationService()
+    service = EmailGenerationService(provider_type="mock")
     req = "Write to professor for 2 days extension"
 
     res_a = service.generate(req, sample_representation, system_version="baseline_a")
@@ -69,7 +69,7 @@ def test_steve_catchup_extraction_and_generation():
     assert rep.recipient != "Write"
     assert "friday" in (rep.deadline or "").lower()
 
-    service = EmailGenerationService()
+    service = EmailGenerationService(provider_type="mock")
     result = service.generate(req, rep, sender_name="Sanjay")
 
     assert "Steve" in result["body"]
@@ -128,7 +128,7 @@ def test_wifi_notice_acknowledgement_generation():
     assert rep.recipient == "Sir"
     assert rep.recipient != "Use Up"
 
-    service = EmailGenerationService()
+    service = EmailGenerationService(provider_type="mock")
     result = service.generate(prompt, rep, sender_name="Sakthi")
 
     assert "Sir" in result["body"]
@@ -158,7 +158,7 @@ def test_prompt_builder_with_revision_instructions(sample_representation):
 
 
 def test_redo_generation_service_with_revision(sample_representation):
-    service = EmailGenerationService()
+    service = EmailGenerationService(provider_type="mock")
     req = "Write to professor for 2 days extension"
 
     # Initial draft
@@ -197,4 +197,24 @@ def test_api_generate_redo_flow(sample_representation):
     assert "subject" in data
     assert "body" in data
     assert len(data["body"]) > 10
+
+
+def test_friendly_generation_no_corporate_jargon():
+    from ai.semantic_interpretation import SemanticInterpreter
+
+    prompt = "Write a casual and friendly email to an old college friend asking whether they are free this weekend to meet for coffee and catch up. Make it warm, natural, and informal without sounding overly sentimental."
+    interp = SemanticInterpreter()
+    rep = interp.interpret(prompt)["representation"]
+
+    service = EmailGenerationService(provider_type="mock")
+    draft = service.generate(prompt, rep, sender_name="admin")
+
+    body = draft["body"]
+    assert "Dear To" not in body
+    assert "Dear Friend" not in body
+    assert "expectations and deliverables" not in body
+    assert "full alignment" not in body
+    assert "meet for coffee and catch up" in body or "catch up" in body
+    assert "admin" in body
+
 

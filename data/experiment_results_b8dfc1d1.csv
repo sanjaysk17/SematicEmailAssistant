@@ -1,0 +1,5 @@
+example_id,domain,method,subject,intent_preserved,completeness_score,semantic_similarity,tone_suitable,unsupported_count,validation_status,latency_ms,missing_items,unsupported_items
+SYN-001,academic,baseline_a,Extension Request for Project - [Your Name],True,1.0,0.207,True,0,NEEDS_REVIEW,2391.99,,
+SYN-001,academic,proposed,Project submission extension request,True,1.0,0.278,True,0,PASS,3586.37,,
+SYN-002,workplace,baseline_a,Sick Leave - Monday and Tuesday,True,1.0,0.447,True,0,NEEDS_REVIEW,1833.69,,
+SYN-002,workplace,proposed,Sick leave for today and tomorrow,True,1.0,0.338,True,0,NEEDS_REVIEW,4673.15,,

@@ -15,4 +15,5 @@ openai>=1.14.0
 pyotp>=2.9.0
 qrcode>=7.4.2
 sentence-transformers>=2.5.0; extra == "full"
+setfit>=1.2.0; extra == "full"
 spacy>=3.7.0; extra == "full"

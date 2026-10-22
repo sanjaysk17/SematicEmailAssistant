@@ -65,3 +65,51 @@ def test_unsupported_attachment_warning(validator, sample_rep):
 
     assert len(report.unsupported_details) > 0
     assert any("attachment" in u.lower() for u in report.unsupported_details)
+
+
+def test_validation_score_threshold_80_percent(validator, sample_rep):
+    """Verifies that high-quality drafts score >= 0.80 (80%) while deficient drafts fall below 0.80."""
+    req = "I could not complete my project because of a technical issue. Write a polite email to my professor requesting two additional days."
+    good_subject = "Project Submission - Requesting Two Additional Days Extension"
+    good_body = (
+        "Dear Professor,\n\n"
+        "I hope this message finds you well. I am writing to politely request two additional days "
+        "to submit my project. Due to an unexpected technical issue, I was unable to complete the work "
+        "by the initial deadline. I have now resolved the technical issue and will submit the final file promptly.\n\n"
+        "Thank you very much for your understanding.\n\n"
+        "Sincerely,\nAlex"
+    )
+    good_report = validator.validate(req, sample_rep, good_subject, good_body)
+    assert good_report.validation_score >= 0.80
+    assert good_report.passed_threshold is True
+
+    # Deficient draft omitting reason and duration
+    bad_subject = "Hi"
+    bad_body = "Hi Professor, give me more time. Bye."
+    bad_report = validator.validate(req, sample_rep, bad_subject, bad_body)
+    assert bad_report.validation_score < 0.80
+    assert bad_report.passed_threshold is False
+
+
+def test_orchestrator_self_validation_before_delivery(sample_rep):
+    """Verifies that orchestrator.generate() performs self-validation before delivering draft to user."""
+    from backend.services.orchestrator import PipelineOrchestrator
+    from backend.schemas.email_schemas import GenerateRequest
+
+    orchestrator = PipelineOrchestrator()
+    req = GenerateRequest(
+        requirement="I could not complete my project because of a technical issue. Write a polite email to my professor requesting two additional days.",
+        representation=sample_rep,
+        llm_provider="mock",
+        sender_name="Alex"
+    )
+
+    resp = orchestrator.generate(req)
+    assert resp.subject is not None
+    assert resp.body is not None
+    # Confirm project self-validated before delivering to user
+    assert resp.validation_score is not None
+    assert isinstance(resp.validation_score, float)
+    assert resp.passed_validation is True
+    assert resp.validation_score >= 0.80
+    assert resp.validation_report is not None

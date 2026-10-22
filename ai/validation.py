@@ -37,7 +37,8 @@ class OutputValidator:
         "semantic_similarity": "Cosine similarity in range [0.0, 1.0] between requirement and generated email embeddings.",
         "tone_suitability": "Binary indicator (1 or 0) whether the generated email honors requested politeness and formality.",
         "completeness_score": "Fraction of required facts and parameters verified as Present in the email body.",
-        "unsupported_information": "Count of unmentioned claims, promises, attachments, or facts detected in output."
+        "unsupported_information": "Count of unmentioned claims, promises, attachments, or facts detected in output.",
+        "validation_score": "Overall composite quality score in range [0.0, 1.0] (80% = 0.80 threshold) required before direct delivery."
     }
 
     # Markers of unverified commitments or invented elements
@@ -107,11 +108,30 @@ class OutputValidator:
         if "[your name]" in lower_email or "<" in subject:
             actionable_warnings.append("Email contains unresolved placeholders (e.g. '[Your Name]').")
 
-        # 8. Overall decision matrix
+        # 8. Overall quantitative validation score (0.0 to 1.0) & decision matrix
+        # Weights: completeness: 0.35, semantic similarity: 0.25, intent: 0.20, tone: 0.20
+        # Deductions: contradictions (-0.20), unsupported claims (-0.05 each), language issues (-0.05 each)
+        sim_val = float(similarity) if similarity is not None else 0.70
+        base_score = (
+            (1.0 if intent_preserved else 0.0) * 0.20
+            + (1.0 if tone_suitable else 0.50) * 0.20
+            + completeness_score * 0.35
+            + min(1.0, max(0.0, sim_val)) * 0.25
+        )
+
+        penalties = (
+            (0.20 if contradictions else 0.0)
+            + min(0.15, len(unsupported_details) * 0.05)
+            + min(0.10, len(language_issues) * 0.05)
+        )
+
+        validation_score = round(max(0.0, min(1.0, base_score - penalties)), 3)
+        passed_threshold = bool(validation_score >= 0.80 and not contradictions and intent_preserved)
+
         # PASS, NEEDS_REVIEW, VALIDATION_ERROR
-        if not intent_preserved or contradictions or completeness_score < 0.40:
+        if not intent_preserved or contradictions or completeness_score < 0.40 or validation_score < 0.50:
             overall_status = ValidationStatusEnum.VALIDATION_ERROR
-        elif missing_details or unsupported_details or not tone_suitable or completeness_score < 0.80 or language_issues:
+        elif missing_details or unsupported_details or not tone_suitable or completeness_score < 0.80 or language_issues or not passed_threshold:
             overall_status = ValidationStatusEnum.NEEDS_REVIEW
         else:
             overall_status = ValidationStatusEnum.PASS
@@ -135,7 +155,9 @@ class OutputValidator:
             language_quality_issues=language_issues,
             actionable_warnings=actionable_warnings,
             metric_definitions=self.METRIC_DEFINITIONS,
-            validation_time_ms=round(elapsed_ms, 2)
+            validation_time_ms=round(elapsed_ms, 2),
+            validation_score=validation_score,
+            passed_threshold=passed_threshold
         )
 
     def _check_intent_preservation(
@@ -160,7 +182,8 @@ class OutputValidator:
             "inquire_information": ["inquire", "information", "grant", "details", "questions"],
             "contract_negotiation": ["renew", "license", "discount", "agreement", "pricing"],
             "equipment_request": ["replacement", "charger", "laptop", "hardware", "power brick"],
-            "recommendation_request": ["recommendation", "letter", "reference", "internship"]
+            "recommendation_request": ["recommendation", "letter", "reference", "internship"],
+            "acknowledgement_and_reply": ["re:", "thank", "received", "regarding", "response", "reply", "confirm", "update", "hello", "hi", "hey"]
         }
 
         signals = intent_signals.get(intent)

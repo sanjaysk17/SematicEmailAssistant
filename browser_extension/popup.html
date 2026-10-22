@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Semantic Email Assistant</title>
   <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
   <div class="app-wrapper">
     <!-- Header -->
@@ -13,8 +15,8 @@
       <div class="header-left">
         <div class="app-logo">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-            <polyline points="22,6 12,13 2,6"/>
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+            <polyline points="22,6 12,13 2,6" />
           </svg>
         </div>
         <div>
@@ -57,9 +59,6 @@
       <button class="nav-tab" data-tab="tab-saved-drafts">
         <span class="tab-icon">📁</span> Drafts <span id="drafts-count-badge" class="badge-count hidden">0</span>
       </button>
-      <button class="nav-tab" data-tab="tab-validation">
-        <span class="tab-icon">🛡️</span> Validation
-      </button>
     </nav>
 
     <!-- Global Progress / Status Bar -->
@@ -81,14 +80,63 @@
         <span id="persona-summary-role" class="persona-role-text">Identity Active</span>
       </div>
 
+      <!-- Professional Scenario Template Selector -->
+      <!-- <div class="section-card template-selector-card">
+        <div class="field-header">
+          <label for="extension-template-select" class="field-label">📋 Professional Scenario Templates</label>
+          <span class="template-badge">1-Click Auto-Fill</span>
+        </div>
+        <select id="extension-template-select" class="select-input template-select">
+          <option value="">-- Select a Scenario Template or write custom prompt --</option>
+          <optgroup label="💼 Executive & Workplace">
+            <option value="exec_status">💼 Executive: Project Milestone & Status Update</option>
+            <option value="exec_reschedule">💼 Executive: Meeting Reschedule with Agenda</option>
+            <option value="exec_budget">💼 Executive: Infrastructure Budget Proposal</option>
+          </optgroup>
+          <optgroup label="🤝 Client & Commercial">
+            <option value="client_billing">🤝 Client: Billing Duplicate Charge Refund</option>
+            <option value="client_renewal">🤝 Client: Contract Renewal & Multi-Year Discount</option>
+            <option value="client_followup">🤝 Client: Proposal Follow-up & Walkthrough</option>
+          </optgroup>
+          <optgroup label="🏥 Medical & Leave">
+            <option value="leave_sick">🏥 Medical: Sick Leave Notice</option>
+            <option value="leave_vacation">🏥 Leave: Planned Vacation / PTO Notice</option>
+          </optgroup>
+          <optgroup label="🎓 Academic & Research">
+            <option value="acad_extension">🎓 Academic: Project Deadline Extension</option>
+            <option value="acad_rec">🎓 Academic: Letter of Recommendation Request</option>
+          </optgroup>
+          <optgroup label="☕ Networking & Social">
+            <option value="net_coffee">☕ Networking: Catching Up with a Colleague</option>
+          </optgroup>
+          <optgroup label="⚠️ Ambiguity & Edge Cases">
+            <option value="vague_test">⚠️ Ambiguity Test: Under-Specified Prompt</option>
+          </optgroup>
+        </select>
+      </div> -->
+
       <div class="section-card">
         <div class="field-header">
-          <label for="requirement-input" class="field-label">What email would you like to write? <span class="required">*</span></label>
-          <button id="btn-grab-context" class="btn-text" title="Web Load: Injects selected text from active webpage directly into your email prompt">
+          <label for="requirement-input" class="field-label">What email would you like to write? <span
+              class="required">*</span></label>
+          <button id="btn-grab-context" class="btn-text"
+            title="Web Load: Injects selected text from active webpage directly into your email prompt">
             📥 Web Load (Selected Text)
           </button>
         </div>
-        <textarea id="requirement-input" class="textarea-input" rows="4" placeholder="Describe the email in your own words. The assistant will personalize the draft using your identity and sign-off..."></textarea>
+        <textarea id="requirement-input" class="textarea-input" rows="4"
+          placeholder="Describe the email in your own words. The assistant will personalize the draft using your identity and sign-off..."></textarea>
+        <!-- Dynamic Prompt Specificity Warning -->
+        <div id="prompt-specificity-warning" class="specificity-warning hidden">
+          <div class="specificity-warning-header">
+            <span class="warning-icon">⚠️</span>
+            <strong>Prompt may be too general!</strong>
+          </div>
+          <p class="specificity-warning-body">
+            Please provide more specific details (e.g. recipient name, exact reason, or dates); otherwise, a generic
+            placeholder email will be generated.
+          </p>
+        </div>
       </div>
 
       <!-- Optional Constraints Collapsible -->
@@ -98,7 +146,8 @@
           <div class="input-grid">
             <div class="form-group">
               <label for="recipient-hint" class="field-label">Target Recipient:</label>
-              <input type="text" id="recipient-hint" class="text-input" placeholder="e.g. Professor Jones, Sarah, Client" />
+              <input type="text" id="recipient-hint" class="text-input"
+                placeholder="e.g. Professor Jones, Sarah, Client" />
             </div>
             <div class="form-group">
               <label for="tone-hint" class="field-label">Target Tone:</label>
@@ -106,19 +155,25 @@
                 <option value="">Auto-Detect from Semantics</option>
                 <option value="polite and professional">Polite & Professional</option>
                 <option value="firm and polite">Firm & Polite (Disputes / Follow-ups)</option>
-                <option value="courteous and urgent">Courteous & Urgent</option>
-                <option value="apologetic and formal">Apologetic & Formal</option>
-                <option value="friendly and casual">Friendly & Casual</option>
+                <option value="courteous and urgent">Courteous & Urgent (Deadlines / Critical)</option>
+                <option value="apologetic and formal">Apologetic & Formal (Delays / Issues)</option>
+                <option value="appreciative and formal">Appreciative & Formal (Thank You / Recognition)</option>
+                <option value="friendly and casual">Friendly & Casual (Peers / Friends)</option>
+                <option value="assertive and direct">Assertive & Direct (Executive / Clear Boundaries)</option>
+                <option value="warm and welcoming">Warm & Welcoming (Introductions / Onboarding)</option>
+                <option value="empathetic and supportive">Empathetic & Supportive (HR / Personal Matters)</option>
+                <option value="persuasive and enthusiastic">Persuasive & Enthusiastic (Proposals / Pitches)</option>
+                <option value="diplomatic and respectful">Diplomatic & Respectful (Sensitive Discussions)</option>
               </select>
             </div>
           </div>
           <div class="input-grid">
             <div class="form-group">
-              <label for="length-hint" class="field-label">Length:</label>
+              <label for="length-hint" class="field-label">Length (Strict Minimum Floor):</label>
               <select id="length-hint" class="select-input">
-                <option value="medium">Medium (Standard)</option>
-                <option value="short">Short (Concise)</option>
-                <option value="long">Detailed</option>
+                <option value="medium">Medium (Standard - Min 130 words / 800 chars)</option>
+                <option value="short">Short (Concise - Min 60 words / 350 chars)</option>
+                <option value="long">Long With Detailed (Comprehensive - Min 250 words / 1600 chars)</option>
               </select>
             </div>
             <div class="form-group">
@@ -128,17 +183,21 @@
           </div>
           <div class="form-group">
             <label for="context-input" class="field-label">Background Context / Prior Thread:</label>
-            <textarea id="context-input" class="textarea-input" rows="2" placeholder="e.g. Senior Thesis Course (CS 499) or Project Apollo"></textarea>
+            <textarea id="context-input" class="textarea-input" rows="2"
+              placeholder="e.g. Senior Thesis Course (CS 499) or Project Apollo"></textarea>
           </div>
         </div>
       </details>
 
       <div class="action-footer">
         <button id="btn-analyze" class="btn btn-secondary">
-          <span>🧠 1. Analyze Semantics</span>
+          <span>🧠 1. Analyze</span>
         </button>
         <button id="btn-generate-direct" class="btn btn-primary">
-          <span>⚡ 2. Generate & Validate Draft</span>
+          <span>⚡ 2. Generate Draft</span>
+        </button>
+        <button id="btn-reply-direct" class="btn btn-primary" style="background: linear-gradient(135deg, #6366f1, #4f46e5);" title="Generate a contextual reply to the pasted email">
+          <span>↩️ Reply</span>
         </button>
       </div>
     </main>
@@ -161,6 +220,15 @@
             <span class="badge badge-indigo" id="rep-intent-badge">Intent: Unknown</span>
             <span class="badge badge-purple" id="rep-tone-badge">Tone: Formal</span>
             <span class="badge badge-neutral" id="rep-confidence-badge">Confidence: 0.0</span>
+          </div>
+
+          <!-- Semantics Ambiguities / Specificity Warning Card -->
+          <div id="rep-uncertainties-card" class="specificity-warning hidden">
+            <div class="specificity-warning-header">
+              <span class="warning-icon">⚠️</span>
+              <strong>Ambiguities / Missing Details:</strong>
+            </div>
+            <div id="rep-uncertainties-list" class="specificity-warning-body"></div>
           </div>
 
           <div class="form-group">
@@ -227,6 +295,18 @@
       </div>
 
       <div id="draft-content" class="hidden">
+        <!-- Generic Draft Warning Alert -->
+        <div id="draft-general-notice" class="specificity-warning hidden">
+          <div class="specificity-warning-header">
+            <span class="warning-icon">⚠️</span>
+            <strong>Generated with General Assumptions</strong>
+          </div>
+          <p class="specificity-warning-body">
+            Original prompt lacked specific details (recipient name, reason, or dates). To get a tailored draft, add
+            specifics in the Redo box below.
+          </p>
+        </div>
+
         <div class="section-card">
           <div class="field-header">
             <label for="draft-subject" class="field-label">Subject Line:</label>
@@ -237,7 +317,8 @@
 
         <div class="section-card">
           <div class="field-header">
-            <label for="draft-body" class="field-label">Email Body (Signed by <span id="draft-sign-name">User</span>):</label>
+            <label for="draft-body" class="field-label">Email Body (Signed by <span
+                id="draft-sign-name">User</span>):</label>
             <span id="draft-word-count" class="stat-counter">0 words</span>
           </div>
           <textarea id="draft-body" class="textarea-input email-body-textarea" rows="9"></textarea>
@@ -258,14 +339,23 @@
           </div>
           <p class="redo-hint">Pick a 1-click refinement or type custom instructions:</p>
           <div class="redo-presets">
-            <button type="button" class="btn-preset" data-preset="Make the email shorter and more concise">✂️ Shorter</button>
-            <button type="button" class="btn-preset" data-preset="Make the email more formal and polite">👔 Formal</button>
-            <button type="button" class="btn-preset" data-preset="Make the tone warmer and friendlier">🤝 Friendlier</button>
-            <button type="button" class="btn-preset" data-preset="Highlight urgency and prompt response">⏰ Urgent</button>
-            <button type="button" class="btn-preset" data-preset="Generate an alternative wording variation">🎲 Alternative</button>
+            <button type="button" class="btn-preset" data-preset="Make the email shorter and more concise">✂️
+              Shorter</button>
+            <button type="button" class="btn-preset" data-preset="Make the email more formal and polite">👔
+              Formal</button>
+            <button type="button" class="btn-preset" data-preset="Make the tone warmer and friendlier">🤝
+              Friendlier</button>
+            <button type="button" class="btn-preset" data-preset="Highlight urgency and prompt response">⏰
+              Urgent</button>
+            <button type="button" class="btn-preset"
+              data-preset="Replace general statements with concrete specifics: explicitly mention recipient name, exact reason, and clear timeline">🎯
+              Add Specifics</button>
+            <button type="button" class="btn-preset" data-preset="Generate an alternative wording variation">🎲
+              Alternative</button>
           </div>
           <div class="redo-input-wrapper">
-            <input type="text" id="redo-feedback-input" class="text-input" placeholder="What to change? (e.g. shorter, don't apologize...)" />
+            <input type="text" id="redo-feedback-input" class="text-input"
+              placeholder="What to change? (e.g. shorter, don't apologize...)" />
             <button type="button" id="btn-redo-draft" class="btn btn-warning">
               <span>⚡ Redo Draft</span>
             </button>
@@ -277,7 +367,8 @@
             <span>📨 Insert into Gmail / Outlook / Active Tab</span>
           </button>
           <div class="button-row">
-            <button id="btn-save-current-draft" class="btn btn-primary flex-1" title="Save this draft & prompt to database">
+            <button id="btn-save-current-draft" class="btn btn-primary flex-1"
+              title="Save this draft & prompt to database">
               <span>💾 Save to Drafts</span>
             </button>
             <button id="btn-view-all-drafts" class="btn btn-secondary flex-1" title="View all drafts in Drafts tab">
@@ -285,73 +376,10 @@
             </button>
           </div>
           <div class="button-row">
-            <button id="btn-copy-all" class="btn btn-outline flex-1">
-              <span>📋 Copy Entire Email</span>
-            </button>
-            <button id="btn-view-validation" class="btn btn-outline flex-1">
-              <span>🛡️ Diagnostics Report</span>
+            <button id="btn-copy-all" class="btn btn-outline full-width">
+              <span>📋 Copy Entire Email to Clipboard</span>
             </button>
           </div>
-        </div>
-      </div>
-    </main>
-
-    <!-- Tab 4: Validation Engine Diagnostics -->
-    <main id="tab-validation" class="tab-content">
-      <div id="val-empty" class="empty-state">
-        <div class="empty-icon">🛡️</div>
-        <p>No validation report generated yet. Draft an email to see multi-criteria checks.</p>
-      </div>
-
-      <div id="val-content" class="hidden">
-        <div class="val-header-card">
-          <div class="val-overall">
-            <div id="val-status-pill" class="status-badge-lg badge-success">PASSED</div>
-            <div class="val-title">Multi-Criteria Output Evaluation</div>
-          </div>
-        </div>
-
-        <div class="metrics-grid">
-          <div class="metric-card">
-            <div class="metric-title">Intent Preservation</div>
-            <div id="metric-intent" class="metric-value text-success">Preserved</div>
-            <div class="metric-desc" id="metric-intent-desc">Goal conveyed accurately</div>
-          </div>
-          <div class="metric-card">
-            <div class="metric-title">Tone Suitability</div>
-            <div id="metric-tone" class="metric-value text-success">Compliant</div>
-            <div class="metric-desc" id="metric-tone-desc">Matched requested register</div>
-          </div>
-          <div class="metric-card">
-            <div class="metric-title">Completeness</div>
-            <div id="metric-completeness" class="metric-value">100%</div>
-            <div class="metric-progress"><div id="metric-completeness-bar" class="metric-bar" style="width: 100%;"></div></div>
-          </div>
-          <div class="metric-card">
-            <div class="metric-title">Semantic Alignment</div>
-            <div id="metric-similarity" class="metric-value">0.88</div>
-            <div class="metric-progress"><div id="metric-similarity-bar" class="metric-bar" style="width: 88%;"></div></div>
-          </div>
-        </div>
-
-        <!-- Missing Details Section -->
-        <div id="val-missing-card" class="section-card hidden">
-          <h4 class="card-subtitle text-warning">⚠️ Missing Information:</h4>
-          <ul id="val-missing-list" class="report-list"></ul>
-        </div>
-
-        <!-- Hallucinations / Unsupported Facts Section -->
-        <div id="val-unsupported-card" class="section-card hidden">
-          <h4 class="card-subtitle text-danger">🚫 Unsupported Details (Hallucinations):</h4>
-          <ul id="val-unsupported-list" class="report-list"></ul>
-        </div>
-
-        <!-- Suggestions Section -->
-        <div id="val-suggestions-card" class="section-card">
-          <h4 class="card-subtitle">💡 Actionable Feedback & Guidance:</h4>
-          <ul id="val-suggestions-list" class="report-list">
-            <li>Email satisfies all factual, semantic, and tone criteria.</li>
-          </ul>
         </div>
       </div>
     </main>
@@ -368,17 +396,20 @@
             🔄 Refresh
           </button>
         </div>
-        <p class="section-subtitle">Every draft is persistently stored alongside the user prompt that generated it in the SQLite database.</p>
+        <p class="section-subtitle">Every draft is persistently stored alongside the user prompt that generated it in
+          the SQLite database.</p>
 
         <div class="drafts-search-box">
-          <input type="text" id="drafts-search-input" class="text-input" placeholder="🔍 Search by prompt, subject, or recipient..." />
+          <input type="text" id="drafts-search-input" class="text-input"
+            placeholder="🔍 Search by prompt, subject, or recipient..." />
         </div>
       </div>
 
       <div id="drafts-empty" class="empty-state">
         <div class="empty-icon">📁</div>
         <p>No saved drafts found yet.</p>
-        <p class="empty-hint">Draft emails in the Assistant tab and they will automatically be saved here with your original prompts!</p>
+        <p class="empty-hint">Draft emails in the Assistant tab and they will automatically be saved here with your
+          original prompts!</p>
       </div>
 
       <!-- Container for dynamic draft cards -->
@@ -392,7 +423,8 @@
           <h3 class="modal-title">👤 My Identity & Persona Memory</h3>
           <button id="btn-close-profile" class="close-btn">&times;</button>
         </div>
-        <p class="modal-desc">The assistant remembers these attributes to personalize every email draft and signature automatically.</p>
+        <p class="modal-desc">The assistant remembers these attributes to personalize every email draft and signature
+          automatically.</p>
 
         <div class="form-group">
           <label for="profile-name" class="field-label">Your Full Name: <span class="required">*</span></label>
@@ -412,17 +444,20 @@
 
         <div class="form-group">
           <label for="profile-signoff" class="field-label">Preferred Sign-off / Signature:</label>
-          <input type="text" id="profile-signoff" class="text-input" placeholder="e.g. Best regards, [Your Name]" value="" />
+          <input type="text" id="profile-signoff" class="text-input" placeholder="e.g. Best regards, [Your Name]"
+            value="" />
         </div>
 
         <div class="form-group">
           <label for="profile-aboutme" class="field-label">Something About Me (Personal Memory):</label>
-          <textarea id="profile-aboutme" class="textarea-input" rows="3" placeholder="Tell the assistant about your background, typical projects, or communication style so drafts sound authentically like you..."></textarea>
+          <textarea id="profile-aboutme" class="textarea-input" rows="3"
+            placeholder="Tell the assistant about your background, typical projects, or communication style so drafts sound authentically like you..."></textarea>
         </div>
 
         <div class="form-group margin-top-sm" style="border-top: 1px solid #e2e8f0; padding-top: 10px;">
           <label for="backend-url-input" class="field-label">🌐 Backend Server URL:</label>
-          <input type="text" id="backend-url-input" class="text-input" placeholder="http://127.0.0.1:8000" value="http://127.0.0.1:8000" />
+          <input type="text" id="backend-url-input" class="text-input" placeholder="http://127.0.0.1:8000"
+            value="http://127.0.0.1:8000" />
           <p class="field-help" style="font-size: 11px; color: #64748b; margin-top: 3px;">
             🔒 All AI APIs run securely on the backend with a single API key. End users do not need their own API keys.
           </p>
@@ -496,7 +531,8 @@
             </div>
             <div class="form-group">
               <label class="field-label">Something About You (Bio/Role):</label>
-              <input type="text" id="reg-aboutme" class="text-input" placeholder="e.g. AI developer working on natural language tools" />
+              <input type="text" id="reg-aboutme" class="text-input"
+                placeholder="e.g. AI developer working on natural language tools" />
             </div>
             <button id="btn-submit-register" class="btn btn-primary full-width margin-top-md">
               <span>Next: Setup Google Authenticator ➡️</span>
@@ -516,7 +552,8 @@
 
             <div class="form-group margin-top-md">
               <label class="field-label">Enter 6-digit code shown in Google Authenticator:</label>
-              <input type="text" id="reg-totp-verify" class="text-input totp-input" maxlength="6" placeholder="000000" />
+              <input type="text" id="reg-totp-verify" class="text-input totp-input" maxlength="6"
+                placeholder="000000" />
             </div>
 
             <button id="btn-verify-reg-totp" class="btn btn-success full-width">
@@ -530,4 +567,5 @@
 
   <script src="popup.js"></script>
 </body>
+
 </html>

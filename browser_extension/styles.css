@@ -1,22 +1,24 @@
 /* ==========================================================================
    Semantic Email Assistant - Extension Stylesheet
-   Modern, responsive, glassmorphic design system
+   Modern, responsive, executive design system with high-contrast typography
    ========================================================================== */
 
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+
 :root {
-  --primary: #3b82f6;
-  --primary-hover: #2563eb;
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
   --primary-light: #eff6ff;
-  --secondary: #64748b;
+  --secondary: #475569;
   --secondary-light: #f1f5f9;
-  --success: #10b981;
+  --success: #059669;
   --success-light: #ecfdf5;
-  --warning: #f59e0b;
+  --warning: #d97706;
   --warning-light: #fffbeb;
-  --danger: #ef4444;
+  --danger: #dc2626;
   --danger-light: #fef2f2;
-  --indigo: #6366f1;
-  --purple: #8b5cf6;
+  --indigo: #4f46e5;
+  --purple: #7c3aed;
 
   --bg-page: #f8fafc;
   --bg-surface: #ffffff;
@@ -24,14 +26,14 @@
   --border-hover: #cbd5e1;
   
   --text-main: #0f172a;
-  --text-muted: #64748b;
-  --text-light: #94a3b8;
+  --text-muted: #334155;
+  --text-light: #64748b;
 
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.03);
+  --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.03);
   --radius: 8px;
-  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 * {
@@ -258,6 +260,49 @@ body {
   outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+}
+
+.template-selector-card {
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 1px solid #cbd5e1;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+}
+
+.template-badge {
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 10px;
+  border: 1px solid #bfdbfe;
+  letter-spacing: 0.02em;
+}
+
+.template-select {
+  border: 1.5px solid #cbd5e1;
+  background-color: #ffffff;
+  font-weight: 500;
+  color: #0f172a;
+  cursor: pointer;
+}
+
+.template-select:hover {
+  border-color: #94a3b8;
+}
+
+.template-select optgroup {
+  font-weight: 700;
+  color: #1e3a8a;
+  background-color: #f8fafc;
+}
+
+.template-select option {
+  font-weight: 400;
+  color: #0f172a;
+  background-color: #ffffff;
+  padding: 4px 6px;
 }
 
 .email-body-textarea {
@@ -1218,4 +1263,41 @@ body {
   color: #92400e;
 }
 
+/* ==========================================================================
+   Specificity Warning & Guidance Notice
+   ========================================================================== */
+.specificity-warning {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  padding: 10px 12px;
+  background-color: #fffbeb;
+  border: 1px solid #fde68a;
+  border-left: 4px solid #f59e0b;
+  border-radius: 6px;
+  animation: fadeInNotice 0.25s ease-in-out;
+}
 
+@keyframes fadeInNotice {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.specificity-warning-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: #92400e;
+  margin-bottom: 4px;
+}
+
+.specificity-warning-header strong {
+  font-weight: 700;
+}
+
+.specificity-warning-body {
+  font-size: 11.5px;
+  color: #78350f;
+  line-height: 1.45;
+  margin: 0;
+}

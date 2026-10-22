@@ -7,7 +7,7 @@ Executes the three systems under identical experimental controls:
 """
 
 import time
-from typing import Dict, Any, Tuple
+from typing import Dict, Any, Tuple, Optional
 from backend.schemas.evaluation_schemas import EvaluationExample
 from backend.schemas.email_schemas import StructuredRequirement
 from ai.semantic_interpretation import SemanticInterpreter
@@ -18,9 +18,10 @@ from ai.validation import OutputValidator
 class BaselineEvaluator:
     """Runs single example iterations through the candidate architectures."""
 
-    def __init__(self):
+    def __init__(self, provider_type: Optional[str] = "mock"):
         self.interpreter = SemanticInterpreter()
-        self.generation_service = EmailGenerationService()
+        self.provider_type = provider_type or "mock"
+        self.generation_service = EmailGenerationService(provider_type=self.provider_type)
         self.validator = OutputValidator()
 
     def run_baseline_a(self, example: EvaluationExample) -> Dict[str, Any]:
@@ -44,7 +45,8 @@ class BaselineEvaluator:
         gen = self.generation_service.generate(
             requirement=example.user_requirement,
             representation=dummy_rep,
-            system_version="baseline_a"
+            system_version="baseline_a",
+            provider_override=self.provider_type
         )
         latency = (time.time() - start) * 1000.0
 
@@ -84,7 +86,8 @@ class BaselineEvaluator:
         gen = self.generation_service.generate(
             requirement=example.user_requirement,
             representation=dummy_rep,
-            system_version="baseline_b"
+            system_version="baseline_b",
+            provider_override=self.provider_type
         )
         latency = (time.time() - start) * 1000.0
 
@@ -120,7 +123,8 @@ class BaselineEvaluator:
         gen = self.generation_service.generate(
             requirement=example.user_requirement,
             representation=rep,
-            system_version="proposed"
+            system_version="proposed",
+            provider_override=self.provider_type
         )
 
         # Stage 3: Output Validation

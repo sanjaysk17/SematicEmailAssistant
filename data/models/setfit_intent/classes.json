@@ -1,0 +1,16 @@
+[
+  "acknowledgement_and_reply",
+  "apology_and_delay_notice",
+  "contract_negotiation",
+  "equipment_request",
+  "informal_invitation_or_catchup",
+  "informational_update",
+  "inquire_information",
+  "interview_follow_up",
+  "recommendation_request",
+  "request_extension",
+  "request_leave",
+  "request_refund",
+  "request_sick_leave",
+  "reschedule_meeting"
+]

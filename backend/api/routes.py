@@ -37,7 +37,7 @@ from backend.services.orchestrator import PipelineOrchestrator
 from backend.services.storage_service import StorageService
 from evaluation.experiments import ExperimentRunner
 from ai.semantic_embeddings import get_embedding_engine
-from backend.config import settings
+from backend.config import settings, normalize_gemini_model
 
 
 logger = logging.getLogger(__name__)
@@ -90,7 +90,7 @@ def update_config(req: ConfigUpdateRequest):
         env_updates["GEMINI_API_KEY"] = settings.GEMINI_API_KEY or ""
 
     if req.gemini_model_name:
-        settings.GEMINI_MODEL_NAME = req.gemini_model_name.strip()
+        settings.GEMINI_MODEL_NAME = normalize_gemini_model(req.gemini_model_name)
         env_updates["GEMINI_MODEL_NAME"] = settings.GEMINI_MODEL_NAME
 
     if req.openai_api_key is not None:
@@ -176,6 +176,29 @@ def generate_email(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Email generation failed: {str(e)}"
+        )
+
+
+@router.post("/reply", response_model=GenerateResponse)
+def reply_to_email(
+    req: GenerateRequest,
+    current_user: Optional[User] = Depends(get_current_user_optional),
+    db: Session = Depends(get_db)
+):
+    """
+    Dedicated endpoint for generating contextual email replies.
+    Treats input requirement as the incoming email message being replied to.
+    """
+    try:
+        req.generation_mode = "reply"
+        user_id = current_user.id if current_user else None
+        user_email = current_user.email if current_user else None
+        return orchestrator.generate(req, db=db, user_id=user_id, user_email=user_email)
+    except Exception as e:
+        logger.error(f"Error in /api/reply: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Email reply generation failed: {str(e)}"
         )
 
 

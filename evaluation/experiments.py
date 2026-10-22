@@ -29,8 +29,8 @@ from backend.services.storage_service import StorageService
 class ExperimentRunner:
     """Manages execution of research evaluations across baseline architectures."""
 
-    def __init__(self):
-        self.evaluator = BaselineEvaluator()
+    def __init__(self, provider_type: Optional[str] = "mock"):
+        self.evaluator = BaselineEvaluator(provider_type=provider_type)
 
     def run_experiment(
         self,

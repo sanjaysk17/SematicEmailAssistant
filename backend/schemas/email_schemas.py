@@ -6,7 +6,7 @@ and validation report schemas.
 
 from typing import List, Optional, Dict, Any, Union
 from enum import Enum
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class ValidationStatusEnum(str, Enum):
@@ -29,6 +29,7 @@ class StructuredRequirement(BaseModel):
     Extensible with custom domain attributes and uncertainties.
     """
     intent: str = Field(..., description="Primary intended communication action or goal")
+    secondary_intents: List[str] = Field(default_factory=list, description="Secondary communication goals for multi-intent requests")
     tone: str = Field(default="polite and professional", description="Intended tone and register")
     recipient: Optional[str] = Field(default=None, description="Audience or recipient designation")
     topic: Optional[str] = Field(default=None, description="Core subject matter of the email")
@@ -45,6 +46,11 @@ class StructuredRequirement(BaseModel):
     custom_attributes: Dict[str, Any] = Field(default_factory=dict, description="Arbitrary domain-specific metadata")
 
 
+    def is_ambiguous(self) -> bool:
+        """Check if requirement has high uncertainty or missing vital fields."""
+        return len(self.uncertainties) > 0 or self.intent in ("uncertain_open_ended", "unspecified", "other")
+
+
 # API Schemas
 class AnalyzeRequest(BaseModel):
     requirement: str = Field(..., min_length=3, max_length=5000, description="Natural language email instruction")
@@ -56,6 +62,16 @@ class AnalyzeRequest(BaseModel):
     explicit_restrictions: List[str] = Field(default_factory=list, description="Explicit negative constraints")
     api_key: Optional[str] = Field(default=None, description="Optional API key override for AI-driven analysis")
     llm_provider: Optional[str] = Field(default=None, description="Optional provider override")
+    generation_mode: Optional[str] = Field(default="new", description="Analysis mode: 'new' or 'reply'")
+
+    @field_validator("requirement")
+    @classmethod
+    def validate_requirement(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError("Requirement cannot be empty or only whitespace.")
+        if len(v.strip()) < 3:
+            raise ValueError("Requirement must contain at least 3 non-whitespace characters.")
+        return v
 
 
 class AnalyzeResponse(BaseModel):
@@ -66,18 +82,30 @@ class AnalyzeResponse(BaseModel):
     confidence: float
     analysis_time_ms: float
     warnings: List[str] = Field(default_factory=list)
+    is_underspecified: bool = Field(default=False, description="Flag indicating prompt lacks sufficient specifics")
+    clarification_suggestions: List[str] = Field(default_factory=list, description="Suggested details to provide")
 
 
 class GenerateRequest(BaseModel):
-    requirement: str = Field(..., min_length=3, description="Original requirement")
+    requirement: str = Field(..., min_length=3, description="Original requirement or incoming email to reply to")
     representation: StructuredRequirement = Field(..., description="Confirmed or edited structured representation")
     context: Optional[str] = Field(default=None, description="Optional user context")
     desired_length: Optional[str] = Field(default="medium")
     language: Optional[str] = Field(default="English")
     system_version: Optional[str] = Field(default="proposed", description="proposed, baseline_a, or baseline_b")
+    generation_mode: Optional[str] = Field(default="new", description="Generation mode: 'new' or 'reply'")
     request_id: Optional[str] = None
     sender_name: Optional[str] = Field(default=None, description="Sender's real name to personalize signature")
     sender_role: Optional[str] = Field(default=None, description="Sender's title, major or role")
+
+    @field_validator("requirement")
+    @classmethod
+    def validate_requirement(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError("Requirement cannot be empty or only whitespace.")
+        if len(v.strip()) < 3:
+            raise ValueError("Requirement must contain at least 3 non-whitespace characters.")
+        return v
     sender_organization: Optional[str] = Field(default=None, description="Sender's company or university")
     sender_sign_off: Optional[str] = Field(default=None, description="Preferred closing/sign-off")
     sender_about_me: Optional[str] = Field(default=None, description="Personal background notes to remember about sender")
@@ -114,6 +142,14 @@ class GenerateResponse(BaseModel):
     raw_prompt_used: Optional[str] = None
     email_id: Optional[str] = None
     draft_id: Optional[str] = None
+    warnings: List[str] = Field(default_factory=list, description="Actionable warnings such as general draft alerts")
+    is_general_draft: bool = Field(default=False, description="Flag indicating draft was generated with general assumptions")
+    clarification_suggestions: List[str] = Field(default_factory=list, description="Suggestions to make the draft more specific")
+    validation_score: Optional[float] = Field(default=None, description="Quality score from self-validation (0.0 to 1.0)")
+    passed_validation: Optional[bool] = Field(default=None, description="Whether draft achieved >= 80% validation score")
+    auto_redone: bool = Field(default=False, description="Whether project internally redid/regenerated the draft due to score < 80%")
+    redo_attempts: int = Field(default=0, description="Number of automated redo attempts performed")
+    validation_report: Optional["OutputValidationReport"] = Field(default=None, description="Full output validation report")
 
 
 class FactValidationItem(BaseModel):
@@ -140,6 +176,8 @@ class OutputValidationReport(BaseModel):
     actionable_warnings: List[str] = Field(default_factory=list)
     metric_definitions: Dict[str, str] = Field(default_factory=dict)
     validation_time_ms: float = 0.0
+    validation_score: float = Field(default=0.0, description="Overall validation quality score in range [0.0, 1.0] (80% = 0.80)")
+    passed_threshold: bool = Field(default=False, description="True if validation_score >= 0.80")
 
 
 class ValidateRequest(BaseModel):

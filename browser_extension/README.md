@@ -28,7 +28,7 @@ Edit `.env` in the project root:
 ```env
 LLM_PROVIDER=gemini
 GEMINI_API_KEY=your_gemini_api_key_here
-GEMINI_MODEL_NAME=gemini-1.5-flash
+GEMINI_MODEL_NAME=gemini-3.8-flash
 ```
 
 *(Note: If no API key is provided, the backend seamlessly runs with the local offline mock provider for testing).*

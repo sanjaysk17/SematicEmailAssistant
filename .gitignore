@@ -55,3 +55,7 @@ htmlcov/
 results_export_*.csv
 scratch/
 tmp/
+
+# Large intermediate model-training checkpoints (production model stays tracked)
+/checkpoints/
+/data/models/setfit_intent/checkpoint-*/

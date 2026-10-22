@@ -34,13 +34,14 @@ class CommunicationRepresentation(StructuredRequirement):
 
     def is_ambiguous(self) -> bool:
         """Check if requirement has high uncertainty or missing vital fields."""
-        return len(self.uncertainties) > 0 or self.intent in ("uncertain_open_ended", "unspecified", "other")
+        return len(self.uncertainties) > 0 or self.intent in ("uncertain_open_ended", "unspecified", "other", "out_of_scope")
 
 
 def create_default_representation(intent: str = "general_communication", tone: str = "polite and professional") -> CommunicationRepresentation:
     """Factory for an empty baseline representation."""
     return CommunicationRepresentation(
         intent=intent,
+        secondary_intents=[],
         tone=tone,
         recipient=None,
         topic=None,

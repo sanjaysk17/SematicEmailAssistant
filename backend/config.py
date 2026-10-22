@@ -32,7 +32,7 @@ class Settings(BaseSettings):
     LOCAL_LLM_MODEL: str = "llama3:8b"
 
     GEMINI_API_KEY: Optional[str] = None
-    GEMINI_MODEL_NAME: str = "gemini-3.8-flash"
+    GEMINI_MODEL_NAME: str = "gemini-3.5-flash-lite"
     GEMINI_API_BASE: str = "https://generativelanguage.googleapis.com/v1beta"
 
     DEFAULT_TEMPERATURE: float = 0.7
@@ -43,6 +43,12 @@ class Settings(BaseSettings):
     ENABLE_SPACY_EXTRACTION: bool = True
     SIMILARITY_THRESHOLD_PASS: float = 0.65
     SIMILARITY_THRESHOLD_REVIEW: float = 0.45
+
+    # Intent Classification Architecture
+    INTENT_CLASSIFIER_BACKEND: str = "auto"  # "auto", "setfit", "head", "exemplar"
+    INTENT_MODEL_PATH: str = "data/models/setfit_intent"
+    INTENT_CONFIDENCE_THRESHOLD: float = 0.17
+    INTENT_MULTI_THRESHOLD: float = 0.20
 
     # Database
     DATABASE_URL: str = "sqlite:///./email_assistant.db"
@@ -77,5 +83,38 @@ class Settings(BaseSettings):
         return None
 
 
+def normalize_gemini_model(model_name: Optional[str]) -> str:
+    """
+    Normalizes Gemini model names to the canonical Google Generative Language API ID.
+    Maps variants like 'gemini-3.5', 'gemini-3.5-lite', 'gemini-3.5-flash-lite' to 'gemini-3.5-flash-lite',
+    and 'gemini-3.8' variants to 'gemini-3.8-flash'.
+    """
+    if not model_name:
+        return "gemini-3.5-flash-lite"
+    cleaned = model_name.strip()
+    lower = cleaned.lower()
+    if lower in (
+        "gemini-3.5",
+        "gemini-3.5-lite",
+        "gemini-3.5-flash-lite",
+        "gemini 3.5",
+        "gemini 3.5 lite",
+        "gemini 3.5 flash lite"
+    ):
+        return "gemini-3.5-flash-lite"
+    if lower in (
+        "gemini-3.8",
+        "gemini-3.8-live",
+        "gemini-3.8-flash",
+        "gemini 3.8",
+        "gemini 3.8 live",
+        "gemini 3.8 flash",
+        "gemini-3.8-live-extended-thinking"
+    ):
+        return "gemini-3.8-flash"
+    return cleaned
+
+
 # Global cached settings instance
 settings = Settings()
+

@@ -1,0 +1,25 @@
+{
+  "model_type": "setfit_minilm_multilabel_ovr",
+  "classes": [
+    "acknowledgement_and_reply",
+    "apology_and_delay_notice",
+    "contract_negotiation",
+    "equipment_request",
+    "informal_invitation_or_catchup",
+    "informational_update",
+    "inquire_information",
+    "interview_follow_up",
+    "recommendation_request",
+    "request_extension",
+    "request_leave",
+    "request_refund",
+    "request_sick_leave",
+    "reschedule_meeting"
+  ],
+  "num_classes": 14,
+  "multi_target_strategy": "one-vs-rest",
+  "calibrated_oos_threshold": 0.14,
+  "multi_intent_threshold": 0.18,
+  "val_oos_f1": 1.0,
+  "trained_at": "2026-10-17 00:31:37"
+}

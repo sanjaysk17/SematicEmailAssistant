@@ -1,0 +1,4 @@
+,accuracy,macro_f1,weighted_f1,multi_intent_recall,unknown_intent_precision,unknown_intent_recall,unknown_intent_f1,unknown_intent_auroc,ece,latency_p50_ms,latency_p95_ms,latency_mean_ms,model_size_mb
+Baseline A (SBERT Exemplar Matcher),0.7879,0.7256,0.7732,0.0,0.7143,0.8333,0.7692,0.9141,N/A,10.72,12.83,11.39,0.05
+Candidate B (MiniLM + Calibrated Head),0.5455,0.5578,0.602,0.0,0.375,1.0,0.5455,0.9394,0.2782,8.93,10.84,9.16,0.09
+Candidate C (SetFit MiniLM),0.6667,0.6367,0.6864,0.0,0.5,1.0,0.6667,0.9899,N/A,10.16,10.55,10.25,346.99

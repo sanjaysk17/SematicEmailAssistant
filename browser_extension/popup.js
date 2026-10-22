@@ -91,6 +91,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Tab 1 (Assistant) Elements
   const reqInput = document.getElementById("requirement-input");
+  const promptSpecificityWarning = document.getElementById("prompt-specificity-warning");
+  const extensionTemplateSelect = document.getElementById("extension-template-select");
   const btnGrabContext = document.getElementById("btn-grab-context");
   const recipientHint = document.getElementById("recipient-hint");
   const toneHint = document.getElementById("tone-hint");
@@ -99,6 +101,118 @@ document.addEventListener("DOMContentLoaded", () => {
   const contextInput = document.getElementById("context-input");
   const btnAnalyze = document.getElementById("btn-analyze");
   const btnGenerateDirect = document.getElementById("btn-generate-direct");
+  const btnReplyDirect = document.getElementById("btn-reply-direct");
+
+  // Professional Template Catalog for 1-Click Scenario Auto-Fill
+  const EXTENSION_TEMPLATES = {
+    exec_status: {
+      req: "Please draft a concise executive progress report to my department head summarizing our team's completion of Phase 2 deliverables, system stability, and upcoming roadmap milestones for next quarter.",
+      recipient: "Department Head",
+      tone: "polite and professional",
+      length: "medium"
+    },
+    exec_reschedule: {
+      req: "Our team needs to reschedule tomorrow's Q3 budget review call to Thursday 3 PM due to an urgent client audit. Send a courteous email to David.",
+      recipient: "David",
+      tone: "courteous and urgent",
+      length: "medium"
+    },
+    exec_budget: {
+      req: "Submit a formal proposal to director requesting $15,000 additional budget for cloud infrastructure upgrades to support user growth.",
+      recipient: "Director",
+      tone: "assertive and direct",
+      length: "medium"
+    },
+    client_billing: {
+      req: "I was billed twice ($49.99 each) for my monthly cloud subscription on Oct 10. Write a firm but polite message to billing support asking for a refund of the duplicate charge.",
+      recipient: "Billing Support",
+      tone: "firm and polite",
+      length: "medium"
+    },
+    client_renewal: {
+      req: "Negotiate annual software contract renewal with account manager Rachel, requesting a 15% multi-year discount and revised SLA terms.",
+      recipient: "Rachel",
+      tone: "diplomatic and respectful",
+      length: "medium"
+    },
+    client_followup: {
+      req: "Follow up with client Mark on the enterprise software proposal submitted last Monday. Inquire if they have reviewed it and offer a 15-minute walkthrough.",
+      recipient: "Mark",
+      tone: "persuasive and enthusiastic",
+      length: "medium"
+    },
+    leave_sick: {
+      req: "I have a fever and doctor advised rest. Email my manager Sarah informing her I will be taking sick leave today Monday and tomorrow Tuesday.",
+      recipient: "Sarah",
+      tone: "polite and professional",
+      length: "short"
+    },
+    leave_vacation: {
+      req: "Submit a formal vacation leave notice to manager Michael for next week Monday to Friday, confirming handover of active tasks to Sarah.",
+      recipient: "Michael",
+      tone: "polite and professional",
+      length: "short"
+    },
+    acad_extension: {
+      req: "I could not complete my project because of a technical issue. Write a polite email to my professor requesting two additional days.",
+      recipient: "Professor",
+      tone: "polite and professional",
+      length: "medium"
+    },
+    acad_rec: {
+      req: "Write a respectful email to Professor Davis requesting a letter of recommendation for a graduate fellowship application before November 15th.",
+      recipient: "Professor Davis",
+      tone: "appreciative and formal",
+      length: "medium"
+    },
+    net_coffee: {
+      req: "I want to write to my friend Steve asking if he will be free on Friday to go outside and have a conversation about my life.",
+      recipient: "Steve",
+      tone: "friendly and casual",
+      length: "short"
+    },
+    vague_test: {
+      req: "Things happened and stuff is weird. Email someone to fix it ASAP.",
+      recipient: "",
+      tone: "",
+      length: "medium"
+    }
+  };
+
+  if (extensionTemplateSelect) {
+    extensionTemplateSelect.addEventListener("change", (e) => {
+      const key = e.target.value;
+      if (!key || !EXTENSION_TEMPLATES[key]) return;
+      const tmpl = EXTENSION_TEMPLATES[key];
+      if (reqInput) reqInput.value = tmpl.req;
+      if (recipientHint) recipientHint.value = tmpl.recipient || "";
+      if (toneHint) toneHint.value = tmpl.tone || "";
+      if (lengthHint) lengthHint.value = tmpl.length || "medium";
+      checkPromptSpecificity();
+      showToast("Template scenario applied!", "info");
+    });
+  }
+
+  // Real-time Prompt Specificity Checker
+  function checkPromptSpecificity() {
+    if (!promptSpecificityWarning || !reqInput) return;
+    const text = reqInput.value.trim();
+    if (!text) {
+      promptSpecificityWarning.classList.add("hidden");
+      return;
+    }
+    const words = text.split(/\s+/);
+    const triggers = ["weird", "stuff", "asap", "things", "whatever", "someone", "something", "fix it"];
+    const hasTrigger = triggers.some(t => text.toLowerCase().includes(t));
+    if (words.length < 8 || hasTrigger) {
+      promptSpecificityWarning.classList.remove("hidden");
+    } else {
+      promptSpecificityWarning.classList.add("hidden");
+    }
+  }
+  if (reqInput) {
+    reqInput.addEventListener("input", checkPromptSpecificity);
+  }
 
   // Tab 2 (Semantics) Elements
   const semanticsEmpty = document.getElementById("semantics-empty");
@@ -115,11 +229,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const repReasonInput = document.getElementById("rep-reason-input");
   const repFactsContainer = document.getElementById("rep-facts-container");
   const repConstraintsContainer = document.getElementById("rep-constraints-container");
+  const repUncertaintiesCard = document.getElementById("rep-uncertainties-card");
+  const repUncertaintiesList = document.getElementById("rep-uncertainties-list");
   const btnGenerateFromRep = document.getElementById("btn-generate-from-rep");
 
   // Tab 3 (Draft) Elements
   const draftEmpty = document.getElementById("draft-empty");
   const draftContent = document.getElementById("draft-content");
+  const draftGeneralNotice = document.getElementById("draft-general-notice");
   const draftSubject = document.getElementById("draft-subject");
   const draftBody = document.getElementById("draft-body");
   const draftSignName = document.getElementById("draft-sign-name");
@@ -764,6 +881,24 @@ document.addEventListener("DOMContentLoaded", () => {
       repConstraintsContainer.innerHTML = '<span class="text-light">Standard professional boundaries applied.</span>';
     }
 
+    // Ambiguities / Specificity Warning
+    if (repUncertaintiesCard && repUncertaintiesList) {
+      const uncertainties = rep.uncertainties || [];
+      if (uncertainties.length > 0 || data.is_underspecified) {
+        repUncertaintiesList.innerHTML = "";
+        const items = uncertainties.length > 0 ? uncertainties : ["Prompt lacks specific details. Generated email will be generic unless more context (recipient, reason, dates) is provided."];
+        items.forEach(u => {
+          const div = document.createElement("div");
+          div.style.marginBottom = "4px";
+          div.innerText = `• ${u}`;
+          repUncertaintiesList.appendChild(div);
+        });
+        repUncertaintiesCard.classList.remove("hidden");
+      } else {
+        repUncertaintiesCard.classList.add("hidden");
+      }
+    }
+
     semanticsEmpty.classList.add("hidden");
     semanticsContent.classList.remove("hidden");
   }
@@ -771,6 +906,80 @@ document.addEventListener("DOMContentLoaded", () => {
   // --- 2. GENERATE & VALIDATE (WITH SENDER PERSONA MEMORY) ---
   btnGenerateDirect.addEventListener("click", () => executeGenerateAndValidate(false));
   btnGenerateFromRep.addEventListener("click", () => executeGenerateAndValidate(true));
+  if (btnReplyDirect) {
+    btnReplyDirect.addEventListener("click", () => executeReplyDirect());
+  }
+
+  async function executeReplyDirect() {
+    const text = reqInput.value.trim();
+    if (!text) {
+      showToast("Please enter or paste the email you want to reply to.");
+      reqInput.focus();
+      return;
+    }
+
+    setLoading(true, "Analyzing incoming email and drafting reply...");
+    try {
+      // Step A: Analyze incoming email in reply mode
+      const aPayload = {
+        requirement: text,
+        context: contextInput.value.trim() || null,
+        recipient_hint: recipientHint.value.trim() || null,
+        tone_hint: toneHint.value ? toneHint.value.toLowerCase() : null,
+        desired_length: lengthHint.value || "medium",
+        language: languageHint.value || "English",
+        generation_mode: "reply"
+      };
+      const aResp = await fetch(`${API_BASE}/analyze`, {
+        method: "POST",
+        headers: getAuthHeaders(),
+        body: JSON.stringify(aPayload)
+      });
+      if (!aResp.ok) throw new Error("Semantic analysis failed");
+      const aData = await aResp.json();
+      state.representation = aData.representation;
+      state.requestId = aData.request_id;
+      populateSemanticsTab(aData);
+
+      // Step B: Call /reply endpoint
+      setLoading(true, `Drafting contextual reply for ${state.user.name}...`);
+      const gPayload = {
+        requirement: text,
+        representation: state.representation,
+        context: contextInput.value.trim() || null,
+        desired_length: lengthHint.value || "medium",
+        language: languageHint.value || "English",
+        system_version: "proposed",
+        generation_mode: "reply",
+        request_id: state.requestId,
+        sender_name: state.user.name,
+        sender_role: state.user.job_title,
+        sender_organization: state.user.organization,
+        sender_sign_off: state.user.preferred_sign_off,
+        sender_about_me: state.user.about_me
+      };
+
+      const gResp = await fetch(`${API_BASE}/reply`, {
+        method: "POST",
+        headers: getAuthHeaders(),
+        body: JSON.stringify(gPayload)
+      });
+      if (!gResp.ok) throw new Error("Reply generation failed");
+      const gData = await gResp.json();
+      state.draft = gData;
+      state.currentDraftId = gData.draft_id || null;
+      populateDraftTab(gData);
+
+      loadSavedDrafts();
+      switchTab("tab-draft");
+      showToast("✅ Reply generated successfully! You can review and edit below.");
+    } catch (err) {
+      console.error(err);
+      showToast(`Error: ${err.message || "Failed to generate reply"}`);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   async function executeGenerateAndValidate(fromEditedRep = false) {
     const text = reqInput.value.trim();
@@ -841,34 +1050,18 @@ document.addEventListener("DOMContentLoaded", () => {
       const gData = await gResp.json();
       state.draft = gData;
 
-      // Step C: Call /validate
-      setLoading(true, "Running Output Validation Engine...");
-      const vPayload = {
-        requirement: text,
-        representation: state.representation,
-        email_subject: gData.subject,
-        email_body: gData.body,
-        generated_email_id: gData.email_id
-      };
-
-      const vResp = await fetch(`${API_BASE}/validate`, {
-        method: "POST",
-        headers: getAuthHeaders(),
-        body: JSON.stringify(vPayload)
-      });
-      if (!vResp.ok) throw new Error("Output validation failed");
-      const vData = await vResp.json();
-      state.validation = vData;
-
       state.currentDraftId = gData.draft_id || null;
-      populateDraftTab(gData, vData);
-      populateValidationTab(vData);
+      populateDraftTab(gData);
 
       // Auto-refresh Drafts tab with newly generated email and prompt
       loadSavedDrafts();
 
       switchTab("tab-draft");
-      showToast(`Email drafted and saved to Drafts!`);
+      if (gData.is_general_draft) {
+        showToast("⚠️ Generated with general assumptions — prompt lacked specifics");
+      } else {
+        showToast(`Email drafted and saved to Drafts!`);
+      }
     } catch (err) {
       showToast("Error: " + err.message);
     } finally {
@@ -876,21 +1069,34 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  function populateDraftTab(draft, validation) {
+  function populateDraftTab(draft, validation = null) {
     draftSubject.value = draft.subject;
     draftBody.value = draft.body;
     updateWordCount();
 
-    draftSignName.innerText = state.user.name || "Sanjay";
-    draftModelTag.innerText = `Model: ${draft.model_identifier || 'Local Fallback'}`;
+    draftSignName.innerText = state.user.name || "User";
+    draftModelTag.innerText = `Model: ${draft.model_identifier || 'gemini-3.5-flash-lite'}`;
     draftLatencyTag.innerText = `Latency: ${(draft.generation_time_ms || 0).toFixed(0)} ms`;
 
-    const status = validation.overall_status;
-    draftValTag.innerText = status;
-    if (status === "Valid" || status === "PASSED") {
-      draftValTag.className = "badge badge-success";
-    } else {
-      draftValTag.className = "badge badge-purple";
+    // Generic Draft Notice Warning
+    if (draftGeneralNotice) {
+      const isGeneral = draft.is_general_draft || (draft.warnings && draft.warnings.some(w => w.toLowerCase().includes("specific") || w.toLowerCase().includes("general")));
+      if (isGeneral) {
+        draftGeneralNotice.classList.remove("hidden");
+      } else {
+        draftGeneralNotice.classList.add("hidden");
+      }
+    }
+
+    if (draftValTag) {
+      if (draft.validation_score !== undefined && draft.validation_score !== null) {
+        const pct = Math.round(draft.validation_score * 100);
+        draftValTag.style.display = "inline-flex";
+        draftValTag.innerText = draft.passed_validation ? `🛡️ Quality: ${pct}% (≥80% Pass)` : `⚠️ Quality: ${pct}% (<80%)`;
+        draftValTag.className = draft.passed_validation ? "meta-tag tag-pass" : "meta-tag tag-review";
+      } else {
+        draftValTag.style.display = "none";
+      }
     }
 
     draftEmpty.classList.add("hidden");
@@ -968,30 +1174,8 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       const gData = await gResp.json();
       state.draft = gData;
-
-      // Auto validate newly redone draft
-      setLoading(true, "Validating redone draft...");
-      const vPayload = {
-        requirement: originalReq,
-        representation: state.representation || {
-          intent: "general_communication",
-          tone: "polite and professional"
-        },
-        email_subject: gData.subject,
-        email_body: gData.body,
-        generated_email_id: gData.email_id
-      };
-      const vResp = await fetch(`${API_BASE}/validate`, {
-        method: "POST",
-        headers: getAuthHeaders(),
-        body: JSON.stringify(vPayload)
-      });
-      const vData = vResp.ok ? await vResp.json() : { overall_status: "PASSED" };
-      state.validation = vData;
-
       state.currentDraftId = gData.draft_id || null;
-      populateDraftTab(gData, vData);
-      populateValidationTab(vData);
+      populateDraftTab(gData);
       loadSavedDrafts();
 
       if (redoFeedbackInput) {
@@ -1100,9 +1284,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  btnViewValidation.addEventListener("click", () => {
-    switchTab("tab-validation");
-  });
+  if (btnViewValidation) {
+    btnViewValidation.addEventListener("click", () => {
+      switchTab("tab-saved-drafts");
+    });
+  }
 
   // --- POPULATE VALIDATION TAB ---
   function populateValidationTab(report) {

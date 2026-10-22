@@ -27,7 +27,53 @@ def render_page_email_viewer():
         return
 
     meta = st.session_state.get("generation_metadata", {})
-    st.caption(f"🤖 **Model Engine:** `{meta.get('model_identifier', 'mock-llm')}` | ⏱️ **Generation Time:** `{meta.get('generation_time_ms', 0):.1f} ms` | 🧬 **System Pipeline:** `{meta.get('system_version', 'proposed')}`")
+    score = meta.get("validation_score")
+    score_str = f"{int(round(score * 100))}%" if score is not None else "N/A"
+    passed_val = meta.get("passed_validation", True)
+    status_icon = "✅ Passed (≥80%)" if passed_val else "⚠️ Under 80%"
+
+    st.caption(
+        f"🤖 **Model Engine:** `{meta.get('model_identifier', 'mock-llm')}` | "
+        f"⏱️ **Generation Time:** `{meta.get('generation_time_ms', 0):.1f} ms` | "
+        f"🛡️ **Self-Validation Score:** `{score_str}` ({status_icon}) | "
+        f"🧬 **Pipeline:** `{meta.get('system_version', 'proposed')}`"
+    )
+
+    if meta.get("auto_redone"):
+        st.info(
+            f"🔄 **Automated Self-Correction:** The project's self-validation engine detected that the initial draft scored below 80%. "
+            f"The system automatically redid the task ({meta.get('redo_attempts', 1)} iteration(s)) with targeted corrective feedback before presenting this draft."
+        )
+
+    val_rep = meta.get("validation_report")
+    if val_rep and isinstance(val_rep, dict):
+        with st.expander("🔍 Inspect Internal Self-Validation Quality Report", expanded=False):
+            v_col1, v_col2, v_col3 = st.columns(3)
+            with v_col1:
+                st.metric("Completeness", f"{int(round(val_rep.get('completeness_score', 0) * 100))}%")
+            with v_col2:
+                st.metric("Semantic Similarity", f"{val_rep.get('semantic_similarity', 0):.2f}")
+            with v_col3:
+                st.metric("Tone Suitability", "Suitable" if val_rep.get("tone_suitable") else "Divergent")
+
+            if val_rep.get("missing_details"):
+                st.warning(f"Missing items identified: {', '.join(val_rep['missing_details'])}")
+            if val_rep.get("unsupported_details"):
+                st.warning(f"Unverified claims flagged: {'; '.join(val_rep['unsupported_details'])}")
+
+    # Generic Draft Warning if prompt lacked specifics
+    rep = st.session_state.get("representation", {})
+    req_text = st.session_state.get("requirement_text", "")
+    uncertainties = rep.get("uncertainties", []) if isinstance(rep, dict) else getattr(rep, "uncertainties", [])
+    is_general = meta.get("is_general_draft") or len(uncertainties) > 0 or (len(req_text.split()) < 8 and len(req_text.strip()) > 0)
+
+    if is_general:
+        st.warning(
+            "⚠️ **Notice: Generic Draft Generated**  \n"
+            "Your original prompt lacked specific details (such as recipient name, concrete reason, or dates), "
+            "so this draft was generated using generalized assumptions.  \n"
+            "👉 **To get a tailored draft:** Add specific details in the **Redo & Refine** section below or update your prompt on the **Email Assistant** tab."
+        )
 
     # Editable draft fields
     edited_subject = st.text_input("Email Subject Line:", value=subject, key="viewer_subject_input")
@@ -51,7 +97,7 @@ def render_page_email_viewer():
             "Pick a quick preset or type your custom feedback below."
         )
 
-        preset_col1, preset_col2, preset_col3, preset_col4, preset_col5 = st.columns(5)
+        preset_col1, preset_col2, preset_col3, preset_col4, preset_col5, preset_col6 = st.columns(6)
         selected_preset = None
         with preset_col1:
             if st.button("✂️ Shorter", use_container_width=True, help="Make the draft shorter and more concise"):
@@ -66,6 +112,9 @@ def render_page_email_viewer():
             if st.button("⏰ More Urgent", use_container_width=True, help="Highlight deadlines and urgency"):
                 selected_preset = "Emphasize immediate urgency and prompt response politely."
         with preset_col5:
+            if st.button("🎯 Add Specifics", use_container_width=True, help="Replace general placeholders with concrete specifics"):
+                selected_preset = "Replace generalized statements with concrete specifics: explicitly mention the recipient name, why this is requested, and clear deadlines."
+        with preset_col6:
             if st.button("🎲 Alternative", use_container_width=True, help="Generate fresh alternative wording"):
                 selected_preset = "Regenerate with completely fresh phrasing and alternative sentence structure."
 
@@ -116,19 +165,6 @@ def render_page_email_viewer():
                         st.session_state["original_model_body"] = data["body"]
                         st.session_state["generation_metadata"] = data
                         st.session_state["redo_instruction_val"] = ""
-
-                        # Auto re-validate new draft
-                        v_payload = {
-                            "requirement": req_text,
-                            "representation": rep,
-                            "email_subject": data["subject"],
-                            "email_body": data["body"],
-                            "generated_email_id": data.get("email_id")
-                        }
-                        v_resp = httpx.post(f"{API_BASE}/validate", json=v_payload, timeout=20.0)
-                        if v_resp.status_code == 200:
-                            st.session_state["validation_report"] = v_resp.json()
-
                         st.success(f"✨ Draft successfully redone: '{revision_text}'")
                         st.rerun()
                     else:
@@ -138,7 +174,7 @@ def render_page_email_viewer():
 
     st.markdown("---")
     # Quick action bar
-    col1, col2, col3, col4 = st.columns([1.5, 1.5, 1.5, 1.5])
+    col1, col2, col3 = st.columns([1.5, 1.5, 1.5])
 
     with col1:
         full_text = f"Subject: {edited_subject}\n\n{edited_body}"
@@ -175,45 +211,12 @@ def render_page_email_viewer():
                         st.session_state["generated_body"] = data["body"]
                         st.session_state["original_model_body"] = data["body"]
                         st.session_state["generation_metadata"] = data
-
-                        # Auto re-validate
-                        v_payload = {
-                            "requirement": req_text,
-                            "representation": rep,
-                            "email_subject": data["subject"],
-                            "email_body": data["body"],
-                            "generated_email_id": data.get("email_id")
-                        }
-                        v_resp = httpx.post(f"{API_BASE}/validate", json=v_payload, timeout=20.0)
-                        if v_resp.status_code == 200:
-                            st.session_state["validation_report"] = v_resp.json()
-
                         st.success("Alternative variation generated!")
                         st.rerun()
                 except Exception as e:
                     st.error(f"Regeneration error: {e}")
 
     with col3:
-        if st.button("🛡️ Re-validate Draft", use_container_width=True):
-            with st.spinner("Evaluating updated draft..."):
-                req_text = st.session_state.get("requirement_text", "")
-                rep = st.session_state.get("representation", {})
-                v_payload = {
-                    "requirement": req_text,
-                    "representation": rep,
-                    "email_subject": edited_subject,
-                    "email_body": edited_body,
-                    "generated_email_id": st.session_state.get("generated_email_id")
-                }
-                try:
-                    v_resp = httpx.post(f"{API_BASE}/validate", json=v_payload, timeout=20.0)
-                    if v_resp.status_code == 200:
-                        st.session_state["validation_report"] = v_resp.json()
-                        st.success("Validation re-calculated! Check 'Validation Results'.")
-                except Exception as e:
-                    st.error(f"Validation error: {e}")
-
-    with col4:
         if st.button("💾 Save to Drafts Library", use_container_width=True):
             try:
                 d_payload = {

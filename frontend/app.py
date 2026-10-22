@@ -9,7 +9,6 @@ from backend.config import settings
 from frontend.pages.page_assistant import render_page_assistant
 from frontend.pages.page_semantic_preview import render_page_semantic_preview
 from frontend.pages.page_email_viewer import render_page_email_viewer
-from frontend.pages.page_validation import render_page_validation
 from frontend.pages.page_experiments import render_page_experiments
 
 st.set_page_config(
@@ -19,26 +18,103 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom Styling for clean modern aesthetics
+# Executive Custom Styling with Modern Typography and High-Contrast Design System
 st.markdown("""
 <style>
-    .main-title {
-        font-size: 28px;
-        font-weight: 800;
-        color: #0f172a;
-        margin-bottom: 2px;
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+
+    html, body, [class*="css"], .stMarkdown, .stText, .stButton, div, span, p {
+        font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
     }
-    .sub-title {
-        font-size: 14px;
-        color: #64748b;
-        margin-bottom: 20px;
+
+    /* High contrast color palette & typography */
+    h1, h2, h3, h4 {
+        color: #0f172a !important;
+        font-weight: 700 !important;
+        letter-spacing: -0.02em;
     }
+
+    p, li, label, .stMarkdown p {
+        color: #334155;
+        font-size: 14.5px;
+        line-height: 1.6;
+    }
+
+    /* Hide default sidebar nav */
     div[data-testid="stSidebarNav"] {
         display: none;
     }
-    .stButton>button {
-        border-radius: 6px;
-        font-weight: 500;
+
+    /* Executive Button Styling */
+    .stButton>button[kind="primary"], .stButton>button[type="primary"] {
+        background: linear-gradient(135deg, #1e3a8a, #2563eb) !important;
+        color: #ffffff !important;
+        border: none !important;
+        font-weight: 600 !important;
+        border-radius: 8px !important;
+        padding: 0.55rem 1.2rem !important;
+        box-shadow: 0 2px 5px rgba(37, 99, 235, 0.25) !important;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+    .stButton>button[kind="primary"]:hover, .stButton>button[type="primary"]:hover {
+        background: linear-gradient(135deg, #1d4ed8, #1e40af) !important;
+        box-shadow: 0 6px 14px rgba(37, 99, 235, 0.35) !important;
+        transform: translateY(-1px);
+    }
+    .stButton>button[kind="secondary"], .stButton>button[type="secondary"] {
+        background: #ffffff !important;
+        color: #0f172a !important;
+        border: 1px solid #cbd5e1 !important;
+        font-weight: 600 !important;
+        border-radius: 8px !important;
+        padding: 0.55rem 1.2rem !important;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+    .stButton>button[kind="secondary"]:hover, .stButton>button[type="secondary"]:hover {
+        background: #f8fafc !important;
+        border-color: #94a3b8 !important;
+        color: #1e3a8a !important;
+        transform: translateY(-1px);
+    }
+
+    /* Input Fields & Textareas with Executive Polish */
+    textarea.stTextArea, input.stTextInput, div[data-baseweb="select"] {
+        border-radius: 8px !important;
+        border-color: #cbd5e1 !important;
+        color: #0f172a !important;
+        background-color: #ffffff !important;
+    }
+    textarea:focus, input:focus {
+        border-color: #2563eb !important;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15) !important;
+    }
+
+    /* Executive Sidebar Styling */
+    section[data-testid="stSidebar"] {
+        background-color: #f8fafc !important;
+        border-right: 1px solid #e2e8f0;
+    }
+    section[data-testid="stSidebar"] h2, section[data-testid="stSidebar"] h3 {
+        color: #0f172a !important;
+    }
+
+    /* Callout & Alert Polish */
+    div[data-testid="stAlert"] {
+        border-radius: 8px !important;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+    }
+
+    /* Category Pill Badges */
+    .category-badge {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        padding: 3px 8px;
+        border-radius: 12px;
+        margin-bottom: 6px;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -67,8 +143,7 @@ def main():
             "1. Email Assistant",
             "2. Semantic Analysis",
             "3. Generated Email",
-            "4. Validation Results",
-            "5. Research Evaluation"
+            "4. Research Evaluation"
         ]
         selected_page = st.radio("Select View:", pages, index=0)
 
@@ -88,10 +163,10 @@ def main():
                 placeholder="Paste your Gemini API Key...",
                 help="Get your free key at https://aistudio.google.com"
             )
-            models_list = ["gemini-1.5-flash", "gemini-2.0-flash", "gemini-1.5-pro"]
-            curr_model = settings.GEMINI_MODEL_NAME if settings.GEMINI_MODEL_NAME in models_list else "gemini-1.5-flash"
+            models_list = ["gemini-3.5-flash-lite", "gemini-3.8-flash", "gemini-3.8-live", "gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"]
+            curr_model = settings.GEMINI_MODEL_NAME if settings.GEMINI_MODEL_NAME in models_list else "gemini-3.5-flash-lite"
             model_idx = models_list.index(curr_model)
-            gemini_model_input = st.selectbox("Gemini Model:", models_list, index=model_idx)
+            gemini_model_input = st.selectbox("Gemini Model:", models_list, index=model_idx, help="Gemini 3.5 Flash Lite delivers ultra-fast neural drafting with fresh quota.")
 
             if st.button("💾 Apply & Save Settings", use_container_width=True):
                 try:
@@ -140,9 +215,7 @@ def main():
         render_page_semantic_preview()
     elif selected_page == "3. Generated Email":
         render_page_email_viewer()
-    elif selected_page == "4. Validation Results":
-        render_page_validation()
-    elif selected_page == "5. Research Evaluation":
+    elif selected_page == "4. Research Evaluation":
         render_page_experiments()
 
 

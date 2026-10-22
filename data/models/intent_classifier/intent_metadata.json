@@ -1,0 +1,27 @@
+{
+  "encoder_name": "all-MiniLM-L6-v2",
+  "classes": [
+    "acknowledgement_and_reply",
+    "apology_and_delay_notice",
+    "contract_negotiation",
+    "equipment_request",
+    "informal_invitation_or_catchup",
+    "informational_update",
+    "inquire_information",
+    "interview_follow_up",
+    "recommendation_request",
+    "request_extension",
+    "request_leave",
+    "request_refund",
+    "request_sick_leave",
+    "reschedule_meeting"
+  ],
+  "num_classes": 14,
+  "temperature": 0.5,
+  "unknown_threshold": 0.15,
+  "entropy_threshold": 0.8,
+  "multi_intent_threshold": 0.35,
+  "training_samples": 104,
+  "validation_samples": 29,
+  "trained_at": "2026-10-17 00:04:40"
+}

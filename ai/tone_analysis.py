@@ -41,33 +41,77 @@ class ToneAnalyzer:
         "time-sensitive", "without delay", "promptly"
     ]
 
-    def extract_requested_tone(self, text: str, user_hint: Optional[str] = None) -> str:
+    def extract_requested_tone(self, text: str, user_hint: Optional[str] = None, intent: Optional[str] = None) -> str:
         """
         Determines the intended tone requested by user.
-        Prioritizes explicit tone hints or explicit mentions in requirement text.
+        Prioritizes:
+        1. Explicit user tone hint (if not 'default' or 'auto-detect').
+        2. Explicit tone keywords/instructions in requirement text (e.g. casual, friendly, warm, informal, polite, formal, urgent).
+        3. Intent-based classification when user does not explicitly request a tone (e.g. informal_invitation_or_catchup -> friendly and casual).
+        4. Default professional register.
         """
-        if user_hint and user_hint.strip():
+        if user_hint and user_hint.strip() and user_hint.strip().lower() not in ("default", "auto-detect", "auto", "none"):
             return user_hint.strip()
 
         lower = text.lower()
+
+        # 1. Explicit user tone directives in text
+        # Friendly / Casual / Warm / Informal directives
+        if re.search(r"\b(casual|friendly|informal|warm|relaxed|colloquial|chatty)\b", lower):
+            return "friendly and casual"
+
+        # Firm / Assertive directives
         if "firm but polite" in lower or "firm and polite" in lower:
             return "firm and polite"
-        if "polite" in lower and "courteous" in lower:
-            return "polite and courteous"
-        if "polite" in lower:
-            return "polite and professional"
-        if "courteous" in lower:
-            return "courteous and urgent"
-        if "appreciative" in lower:
-            return "appreciative and professional"
-        if "apologize" in lower or "apology" in lower:
-            return "apologetic and professional"
-        if "assertive" in lower or "firm" in lower:
+        if re.search(r"\b(assertive|firm|resolute|boundary)\b", lower):
+            if "polite" in lower or "courteous" in lower:
+                return "firm and polite"
             return "firm and professional"
-        if "casual" in lower or "informal" in lower:
-            return "friendly and casual"
-        if "formal" in lower:
+
+        # Polite / Courteous directives
+        if "polite and courteous" in lower or ("polite" in lower and "courteous" in lower):
+            return "polite and courteous"
+        if "courteous and urgent" in lower or ("courteous" in lower and "urgent" in lower):
+            return "courteous and urgent"
+
+        # Urgent / Critical directives
+        if re.search(r"\b(urgent|urgently|time-sensitive|critical|emergency|asap)\b", lower):
+            if "polite" in lower or "courteous" in lower:
+                return "courteous and urgent"
+            return "urgent and professional"
+
+        # Apologetic directives
+        if re.search(r"\b(apologetic|apology|apologize|apologies|regretful|sorry)\b", lower):
+            return "apologetic and professional"
+
+        # Appreciative / Gratitude directives
+        if re.search(r"\b(appreciative|appreciation|grateful|gratitude|thankful)\b", lower):
+            return "appreciative and professional"
+
+        # Formal / Respectful directives
+        if re.search(r"\b(strictly\s+formal|formal|diplomatic|respectful|official)\b", lower):
             return "formal and respectful"
+
+        # Explicit polite directive
+        if re.search(r"\b(polite|courteous)\b", lower):
+            return "polite and professional"
+
+        # 2. When user did NOT explicitly specify a tone in the requirement,
+        # correctly classify tone based on communication intent / domain
+        if intent:
+            intent_lower = intent.lower()
+            if intent_lower in ("informal_invitation_or_catchup", "invitation_catchup", "social_catchup", "peer_invitation"):
+                return "friendly and casual"
+            if intent_lower in ("billing_dispute", "complaint_or_issue", "escalation"):
+                return "firm and polite"
+            if intent_lower in ("urgent_escalation", "incident_alert"):
+                return "urgent and professional"
+            if intent_lower in ("apology", "service_outage_notice"):
+                return "apologetic and professional"
+            if intent_lower in ("gratitude", "thank_you", "appreciation"):
+                return "appreciative and professional"
+            if intent_lower in ("formal_business_letter", "recommendation_request", "legal_notice"):
+                return "formal and respectful"
 
         # Default professional register
         return "polite and professional"
